@@ -5,7 +5,7 @@ import pandas as pd
 def pinterest_crawl_to_csv(search_keywords):
     configs = PinterestConfig(search_keywords=search_keywords,  # Search word
                               # total number of images to download (default = "100")
-                              file_lengths=10,
+                              file_lengths=1000000,
                               # image quality (default = "orig")
                               image_quality="orig",
                               bookmarks="")         # next page data (default= "")
@@ -15,29 +15,36 @@ def pinterest_crawl_to_csv(search_keywords):
     data = PinterestScraper(configs).get_urls()
 
     # table 생성 & 값 입력
-    df = pd.DataFrame(columns=["url",  "title", "description",
-                      "display_description", "link", "created_at"], data=data)
+    df = pd.DataFrame(columns=[
+        "url",  "title", "description", "display_name", "display_description", "link", "created_at"], data=data)
     return df
 
 
 if __name__ == "__main__":
-    csv_path = r'C:\Memoticon\Crawl_gh\pinterest.csv'
 
-    search_keywords = ['밈', '밈 짤', '밈 고양이', '밈 강아지', '밈 절망',
-                       '밈 한국어', '밈 그리기', '밈 유머 짤', '짤 모음',
-                       '짤 말풍선', '짤 귀여운', '짤', '짤 모음', '짤 대전을 시작하지',
-                       '짤 gif', '웃긴 짤', '29살 짤', '트위터 짤', '트위터',
-                       '고양이 짤', '무한도전 짤', '직장인 짤', '해리포터 짤', 'mbti짤',
-                       'mbti밈', '인터넷 밈 짤', '동물 짤 밈', '밈 짜증', '짜증나는 밈',
-                       '웃긴 밈 짜증', '짜장면 밈', '짜파게티 밈', '짜증날 때 밈', '행복할 때 밈',
-                       '슬플 때 밈', '유용한 짤', '카톡할때 유용한 짤', '유용한 카톡 짤', '짤 저장소']
+    search_keywords = ['짤 대전을 시작하지', '짤 저장소']
+
+    tmp_list = ['분노', '경멸', '혐오', '공포', '행복', '절망', '귀여운', '중립', '말풍선', '슬픔', '슬픈', '놀람', '최신', '화남', '좋아', '황당', '닥쳐', '멘붕', '칭찬', '눈물', '오글',
+                '철컹', '레전드', '정치', '솔로', '이말년', '침착맨', '무도', '무한도전', '커플', '눈물', '추노', '독수리', '웃긴', '고양이', '직장인', '해리포터', '유용한 짤', 'mbti', '트위터', '강아지']
+    search_keywords.extend(word+" 밈" for word in tmp_list)
+    search_keywords.extend(word+" 짤" for word in tmp_list)
+    search_keywords.extend(word+" 짤방" for word in tmp_list)
+    search_keywords = list(set(search_keywords))
 
     result = pd.DataFrame(columns=[
-                          "url",  "title", "description",   "display_description", "link", "created_at"])
+                          "url",  "title", "description", "display_name", "display_description", "link", "created_at"])
 
+    """
     for i in search_keywords:
         df = pinterest_crawl_to_csv(i)
         result = pd.concat([result, df])
 
     result.drop_duplicates(subset='url', inplace=True)
     result.to_csv(csv_path, encoding='utf-8')
+    """
+
+    for i in search_keywords:
+        df = pinterest_crawl_to_csv(i)
+        df.drop_duplicates(subset='url', inplace=True)
+        df.to_csv(
+            f'./pinterest_csv/pinterest_{i}.csv', encoding='utf-8', index=False)

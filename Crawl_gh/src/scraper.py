@@ -60,8 +60,10 @@ class Scraper:
 
             if i['rich_summary'] != None:
                 display_description = i['rich_summary']['display_description']
+                display_name = i['rich_summary']['display_name']
             else:
                 display_description = "None"
+                display_name = "None"
 
             self.image_urls.append(
                 dict(
@@ -71,6 +73,7 @@ class Scraper:
                     created_at=i['created_at'],  # 생성 날짜
                     link=i['link'],  # 원본 url
                     display_description=display_description,
+                    display_name=display_name
                 )
             )
 
