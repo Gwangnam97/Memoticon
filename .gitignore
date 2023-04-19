@@ -1,17 +1,12 @@
 # default_file
-# *.json
 *.csv
 tmp*.py
 *.txt
 __pycache__
 *.jpg
-
-
-# env_files
-# Pipfile.lock
-# Pipfile
 .env
 
+# folder
+.vscode
 
-# Pinterest
-# src
+
