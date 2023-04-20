@@ -1,0 +1,11 @@
+# default_file
+*.csv
+*.xlsx
+tmp*.py
+*.txt
+__pycache__
+*.jpg
+.env
+
+# folder
+.vscode
