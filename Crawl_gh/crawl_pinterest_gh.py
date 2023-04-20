@@ -5,7 +5,8 @@ import pandas as pd
 def pinterest_crawl_to_csv(search_keywords: str) -> pd.DataFrame:
     configs = PinterestConfig(search_keywords=search_keywords,  # Search word
                               # total number of images to download (default = "100")
-                              file_lengths=1000000,
+                            #   file_lengths=1000000,
+                              file_lengths=100,
                               # image quality (default = "orig")
                               image_quality="orig",
                               bookmarks="")         # next page data (default= "")
@@ -16,7 +17,7 @@ def pinterest_crawl_to_csv(search_keywords: str) -> pd.DataFrame:
 
     # table 생성 & 값 입력
     df = pd.DataFrame(columns=[
-        "url",  "title", "description", "display_name", "display_description", "link", "created_at"], data=data)
+        "url",  "title", "description", "display_name", "display_description", "link", "created_at", "crawled_at"], data=data)
     df['crawled_at'] = search_keywords
 
     return df
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     search_keywords.extend(word+" 짤방" for word in tmp_list)
     # 중복 값 제거
     search_keywords = list(set(search_keywords))
-
+    search_keywords = ['무도']
     # DataFrame
     result = pd.DataFrame(columns=[
                           "url",  "title", "description", "display_name", "display_description", "link", "created_at", "crawled_at"])
@@ -43,4 +44,5 @@ if __name__ == "__main__":
 
     csv_path = r'C:/Memoticon/Crawl_gh/csv/pinterest.csv'
     result.drop_duplicates(subset='url', inplace=True)
+    result.reset_index(drop=True, inplace=True)
     result.to_csv(csv_path, encoding='utf-8')
