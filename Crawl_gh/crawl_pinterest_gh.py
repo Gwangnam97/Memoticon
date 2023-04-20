@@ -41,6 +41,6 @@ if __name__ == "__main__":
         df = pinterest_crawl_to_csv(i)
         result = pd.concat([result, df])
 
-    csv_path = r'Crawl_gh\csv'
+    csv_path = r'C:/Memoticon/Crawl_gh/csv/pinterest.csv'
     result.drop_duplicates(subset='url', inplace=True)
     result.to_csv(csv_path, encoding='utf-8')
