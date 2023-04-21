@@ -1,87 +1,69 @@
-from flask import Flask, request, jsonify
-from bs4 import BeautifulSoup
-import urllib
-import requests
+import uvicorn
 import mysql.connector
-
-ERROR_MESSAGE = '네트워크 접속에 문제가 발생하였습니다. 잠시 후 다시 시도해주세요.'
-
-
-app = Flask(__name__)
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request
+import time
 
 # MySQL connection configuration
 config = {
     'host': 'localhost',
-    'user': 'username',
+    'user': 'root',
     'password': '1234',
-    'database': 'mysql'
+    'database': 'sys'
 }
 
-
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+app = FastAPI()
 
 
-@app.route('/weather', methods=['POST'])
-def weather():
-
-    req = request.get_json()
-
-    location = req["action"]["detailParams"]["sys_location"]["value"]
-
-    enc_loc = urllib.parse.quote(location + '+ 날씨')
-    el = str(enc_loc)
-    url = 'https://search.naver.com/search.naver'
-    url = url + '?sm=top_hty&fbm=1&ie=utf8&query='
-    url = url + el
-
-    html = requests.get(url).text
-
-    soup = BeautifulSoup(html, "lxml")
-
-    tmp = soup.find_all("div", {"class": "_tab_flicking"})[0]
-    tmp = tmp.find_all("div", {"class": "_today"})[0]
-    tmp = tmp.find_all("div", {"class": "temperature_text"})[0]
-    tmp = tmp.find_all("strong")[0]
-    r3 = str(tmp.text).split("현재 온도")[-1].split('.')[0]
-
-    answer = location + "의 온도는 " + r3 + "도 입니다."
-
-    # 답변 텍스트 설정
-    res = {
-        "version": "2.0",
-        "template": {
-            "outputs": [
-                {
-                    "simpleText": {
-                        "text": answer
-                    }
-                }
-            ]
-        }
-    }
+@app.post('/weather')
+async def weather(request: Request):
+    
+    # Start crawling
+    start_time = time.time()
+    req = await request.json()
+    # location = req["action"]["detailParams"]["sys_location"]["value"]
 
     # Connect to MySQL
     conn = mysql.connector.connect(**config)
 
     # Execute SQL query
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM user limit 1')
+    cursor.execute('SELECT url FROM teeest ORDER BY RAND() LIMIT 3')
 
     # Fetch results
     results = cursor.fetchall()
 
-    # Close MySQL connection
+    # Format response
+    items = []
+    for result in results:
+        item = {
+            "title": f"listCard 테스트#{results.index(result) + 1}",
+            "description": f"listCard 테스트#{results.index(result) + 1} description",
+            "imageUrl": result[0],
+            "link": {"web": result[0]}
+        }
+        items.append(item)
+
+    res = {"version": "2.0",
+           "template": {"outputs": [{
+               "listCard": {
+                   "header": {"title": "listCard 테스트"},
+                   "items": items,
+                   "buttons": [{
+                       "label": "네이버링크",
+                       "action": "webLink",
+                       "webLinkUrl": "https://www.naver.com"
+                   }]
+               }
+           }]
+           }
+           }
+
     cursor.close()
     conn.close()
-    print(results)
+    print("Execution time:", time.time() - start_time)
+    return JSONResponse(content=res)
 
-    return jsonify(res)
 
-
-# 메인 함수
-if __name__ == '__main__':
-
-    app.run(host='0.0.0.0', port=5000, threaded=True, debug=True)
-    # app.run(host='127.0.0.1', port=5000, threaded=True, debug = True)
+if __name__ == 'main':
+    uvicorn.run(app, host='0.0.0.0', port=5000)
