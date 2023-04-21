@@ -1,60 +1,31 @@
-# import pandas as pd
+import uvicorn
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-# df = pd.read_csv(r'C:\Memoticon\Crawl_gh\csv\naver.csv')
-# df = df.drop(columns='img',axis=1)
-# df.to_csv('./teeest.csv',index=True)
+app = FastAPI(
+    title="Ajou notices server", description="for Kakao Chatbot", version="1.0.0"
+)
+app.add_middleware(  # 미들웨어 CORS
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
+
+@app.get("/")
+def hello():
+    return "Welcome to my first_server, the server is running well."
 
 
-# cursor.execute('SELECT url FROM pin_test order by rand() limit 1')
-cursor.execute('SELECT url FROM teeest order by rand() limit 3')
+# http링크/schedule로 스킬 서버를 연결
+@app.post("/schedule")
 
-# Fetch results
-results = cursor.fetchall()
-results[0][0]
-results[1][0]
-results[2][0]
 
-res = {"version": "2.0",
-       "template": {"outputs": [{
-                                "listCard": {
-                                    "header": {
-                                        "title": "listCard 테스트"
-                                    },
-                                    "items": [
-                                        {
-                                            "title": "listCard 테스트#1",
-                                            "description": "listCard 테스트#1 description",
-                                            "imageUrl": results[0][0],
-                                            "link": {
-                                                "web": results[0][0]
-                                            }
-                                        },
-                                        {
-                                            "title": "listCard 테스트#2",
-                                            "description": "listCard 테스트#2 description",
-                                            "imageUrl": results[1][0],
-                                            "link": {
-                                                "web": results[1][0]
-                                            }
-                                        },
-                                        {
-                                            "title": "listCard 테스트#3",
-                                            "description": "listCard 테스트#3 description",
-                                            "imageUrl": results[2][0],
-                                            "link": {
-                                                "web": results[2][0]
-                                            }
-                                        },
-                                    ],
-                                    "buttons": [
-                                        {
-                                            "label": "네이버링크",
-                                            "action": "webLink",
-                                            "webLinkUrl": "https://www.naver.com"
-                                        }
-                                    ]
-                                }
-                                }
-                                ]
-                    }
-       }
+
+    return JSONResponse()
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
