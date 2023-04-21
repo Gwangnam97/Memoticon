@@ -74,8 +74,9 @@ for i in tqdm(range(len(total_data))):
         print( i ," 오류")
         text_tag.append(None)
         
-    with open(f'tmp_text_tag_{i}.pkl','wb') as f: # 혹시 중간에 터질까봐 10000번째 마다 임시저장
-        pickle.dump(text_tag, f)
+    if i%10000 == 0 :
+        with open(f'tmp_text_tag_{i}.pkl','wb') as f: # 혹시 중간에 터질까봐 10000번째 마다 임시저장
+            pickle.dump(text_tag, f)
 
 # 이번 오류는 뭐지... => 한글 영어 숫자만 남겻을 때, 빈칸이 되면 오류가 뜸
 # 61%, 62%에서 멈췄다가 한참 있다가 다시 되는 현상이 있음 97859,97952,98596 왜 그러지...
