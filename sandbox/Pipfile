@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+absl-py = "==1.3.0"
+astunparse = "==1.6.3"
+autopep8 = "==2.0.1"
+requests = "*"
+beautifulsoup4 = "*"
+mysqlclient = "*"
+snscrape = "*"
+pandas = "*"
+emoji = "*"
+
+[dev-packages]
+autopep8 = "*"
+ipykernel = "*"
+
+[requires]
+python_version = "3.11"
+python_full_version = "3.11.1"
