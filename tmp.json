@@ -1,0 +1,33 @@
+{
+  "bot": { "id": "643e4a0960d7281960631aaa!", "name": "meme_test" },
+  "intent": {
+    "id": "64415440013416338a0853a3",
+    "name": "send_img",
+    "extra": { "reason": { "code": 1, "message": "OK" } }
+  },
+  "action": {
+    "id": "6446074fe5fedb7b735ed952",
+    "name": "send_img_random",
+    "params": { "media_check": "사진" },
+    "detailParams": {
+      "media_check": { "groupName": "", "origin": "사진", "value": "사진" }
+    },
+    "clientExtra": {}
+  },
+  "userRequest": {
+    "block": { "id": "64415440013416338a0853a3", "name": "send_img" },
+    "user": {
+      "id": "f960247737cbee8470d42418d04f968ca27390c7a28df4f1c65417c432e5761f4e",
+      "type": "botUserKey",
+      "properties": {
+        "botUserKey": "f960247737cbee8470d42418d04f968ca27390c7a28df4f1c65417c432e5761f4e",
+        "bot_user_key": "f960247737cbee8470d42418d04f968ca27390c7a28df4f1c65417c432e5761f4e"
+      }
+    },
+    "utterance": "사진",
+    "params": { "ignoreMe": "true", "surface": "BuilderBotTest" },
+    "lang": "ko",
+    "timezone": "Asia/Seoul"
+  },
+  "contexts": []
+}
