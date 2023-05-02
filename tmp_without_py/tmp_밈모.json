@@ -1,19 +1,21 @@
 {
   "bot": { "id": "643e4a0960d7281960631aaa", "name": "meme_test" },
   "intent": {
-    "id": "64477498d853bb56940a87bd",
-    "name": "send_img",
-    "extra": { "reason": { "code": 101, "message": "DIRECT_ID" } }
+    "id": "6445fd79d853bb56940a7c49",
+    "name": "talk_to_mememo",
+    "extra": { "reason": { "code": 0, "message": "OK" } }
   },
   "action": {
-    "id": "64477484e40e9c7542d763bb",
-    "name": "send_img",
-    "params": {},
-    "detailParams": {},
-    "clientExtra": { "name": "분노" }
+    "id": "64481201e40e9c7542d767a2",
+    "name": "skill_talk_to_mememo",
+    "params": { "contents": "남자" },
+    "detailParams": {
+      "contents": { "groupName": "", "origin": "남자", "value": "남자" }
+    },
+    "clientExtra": {}
   },
   "userRequest": {
-    "block": { "id": "64477498d853bb56940a87bd", "name": "send_img" },
+    "block": { "id": "6445fd79d853bb56940a7c49", "name": "talk_to_mememo" },
     "user": {
       "id": "f9700a1c5b45ba384ecf32b6dec26b91107390c7a28df4f1c65417c432e5761f4e",
       "type": "botUserKey",
@@ -25,7 +27,7 @@
         "plusfriend_user_key": "LTlQ2UulD2Co"
       }
     },
-    "utterance": "분노",
+    "utterance": "밈모에게 얘기하기",
     "params": { "surface": "Kakaotalk.plusfriend" },
     "lang": "ko",
     "timezone": "Asia/Seoul"
