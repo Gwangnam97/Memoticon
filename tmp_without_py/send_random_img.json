@@ -1,0 +1,36 @@
+{
+  "bot": { "id": "643e4a0960d7281960631aaa", "name": "meme_test" },
+  "intent": {
+    "id": "644a0944b5e5636c2125a14c",
+    "name": "send_img_random",
+    "extra": { "reason": { "code": 1, "message": "OK" } }
+  },
+  "action": {
+    "id": "6446074fe5fedb7b735ed952",
+    "name": "send_img_random",
+    "params": { "img_random": "샘플" },
+    "detailParams": {
+      "img_random": { "groupName": "", "origin": "샘플", "value": "샘플" }
+    },
+    "clientExtra": {}
+  },
+  "userRequest": {
+    "block": { "id": "644a0944b5e5636c2125a14c", "name": "send_img_random" },
+    "user": {
+      "id": "f9700a1c5b45ba384ecf32b6dec26b91107390c7a28df4f1c65417c432e5761f4e",
+      "type": "botUserKey",
+      "properties": {
+        "botUserKey": "f9700a1c5b45ba384ecf32b6dec26b91107390c7a28df4f1c65417c432e5761f4e",
+        "isFriend": true,
+        "plusfriendUserKey": "LTlQ2UulD2Co",
+        "bot_user_key": "f9700a1c5b45ba384ecf32b6dec26b91107390c7a28df4f1c65417c432e5761f4e",
+        "plusfriend_user_key": "LTlQ2UulD2Co"
+      }
+    },
+    "utterance": "샘플",
+    "params": { "surface": "Kakaotalk.plusfriend" },
+    "lang": "ko",
+    "timezone": "Asia/Seoul"
+  },
+  "contexts": []
+}

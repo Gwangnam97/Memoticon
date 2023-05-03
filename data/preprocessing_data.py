@@ -4,7 +4,8 @@ import pandas as pd
 def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     print(f"origin len : {len(df)}")
     df.drop(
-        columns=["text", "hashtag", "crawled_at", "text_tag", "ocr_text", "ocr_tag"],
+        columns=["text", "hashtag", "crawled_at",
+                 "text_tag", "ocr_text", "ocr_tag"],
         inplace=True,
     )
 
@@ -39,7 +40,8 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     # print(df_duplicate.head(20))
 
     # 그룹화 및 병합
-    df_dup_merged = df_duplicate.groupby("url").agg({"hashtag": "sum"}).reset_index()
+    df_dup_merged = df_duplicate.groupby(
+        "url").agg({"hashtag": "sum"}).reset_index()
     print(f"len(df_dup_merged) : {len(df_dup_merged)}", end="\n\n")
 
     print(
@@ -153,11 +155,13 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     index_cfw = []
 
     for filter_word in filter_list:
-        contain_word_index_list = df[df["hashtag"].str.contains(filter_word)].index
+        contain_word_index_list = df[df["hashtag"].str.contains(
+            filter_word)].index
         index_cfw.extend(contain_word_index_list)
 
     index_cfw = list(set(index_cfw))
-    print(f"num of filterd index = len(index_cfw) : {len(index_cfw)}", end="\n\n\n")
+    print(
+        f"num of filterd index = len(index_cfw) : {len(index_cfw)}", end="\n\n\n")
     # =======================================================================================
 
     df2 = df.loc[df.index.isin(index_cfw)]
@@ -175,7 +179,8 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
 def get_hashtag_count(df: pd.DataFrame) -> pd.DataFrame:
     # 각 태그마다 등장 횟수를 세어서 내림차순으로 정렬
     hashtag_count = (
-        df["hashtag"].str.split(",", expand=True).stack().value_counts().reset_index()
+        df["hashtag"].str.split(
+            ",", expand=True).stack().value_counts().reset_index()
     )
     hashtag_count.columns = ["hashtag", "count"]
 
@@ -187,13 +192,18 @@ def get_hashtag_count(df: pd.DataFrame) -> pd.DataFrame:
 
     print(f"df_hc.head() : \n{df_hc.head()}")
 
+    return df_hc
+
 
 pd.set_option("mode.chained_assignment", None)
 
 
 if __name__ == "__main__":
     path = "C:\Memoticon\data\data.csv"
+
     df = pd.read_csv(rf"{path}", low_memory=False, memory_map=True)
     df = preprocessing(df)
+    df.to_csv('./tmp_data.csv', index_label="id")
+
     df_tag = get_hashtag_count(df)
     df_tag.to_csv('./hashtag.csv')
