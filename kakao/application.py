@@ -26,14 +26,10 @@ with mysql.connector.connect(**config) as conn:
     target_column = "text_tag"
     query = f"SELECT SUBSTRING_INDEX(SUBSTRING_INDEX({target_column}, ',', n), ',', -1) AS tag_word, COUNT(*) AS cnt FROM {main_table} CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) AS nums WHERE n <= 1 + LENGTH({target_column}) - LENGTH(REPLACE({target_column}, ',', '')) GROUP BY tag_word ORDER BY cnt DESC LIMIT 6;"
 
-    # Get the URLs from the main table
     cursor.execute(query)
 
     # Quick replies labels
-    quick_replies_labels = []
-    # Process each row of the result set
-    for result in cursor.fetchall():
-        quick_replies_labels.append(result[0])
+    quick_replies_labels = [result[0] for result in cursor.fetchall()]
 
 # Quick replies format
 quick_replies = [
@@ -110,9 +106,11 @@ async def get_image_data(category_name: str = "None", random: bool = False):
 
         # Ad-hoc search algorithm
         if random == False:
-            query = f"SELECT * FROM {main_table} where text_tag like ('%{category_name}%') ORDER BY RAND() LIMIT 90;"
+            query = f"SELECT * FROM {main_table} where {target_column} like ('%{category_name}%') ORDER BY RAND() LIMIT 90;"
+
+
         else:
-            query = f"SELECT * FROM {main_table} ORDER BY RAND() LIMIT 90;"
+            query = f"SELECT * FROM {main_table} ORDER BY RAND() LIMIT 100;"
 
         # Get the URLs from the main table
         cursor.execute(query)
