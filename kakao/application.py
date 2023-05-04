@@ -6,6 +6,9 @@ import requests
 import openai
 import os
 import random
+import aiomysql
+import asyncio
+import uvicorn
 
 # from dotenv import load_dotenv
 
@@ -18,6 +21,7 @@ import random
 # get_image_data rand parameter 수정해!!!
 # get_image_data rand parameter 수정해!!!
 
+# Initialize the FastAPI app
 app = FastAPI()
 
 # Define blocks ID
@@ -25,8 +29,15 @@ block_id_send_img_random = "644a0944b5e5636c2125a14c"
 block_id_send_img = "64477498d853bb56940a87bd"
 
 
-# MySQL connection configuration
-config = {"host": "localhost", "user": "root", "password": "1234", "database": "sys"}
+# Define the database connection configuration
+config = {
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "1234",
+    "db": "sys"
+}
+
 
 # Define tables & columns, Delete & save rows to del_history
 main_table = "sys.main"
@@ -34,42 +45,72 @@ del_table = "del_history"
 count_column = "count_sum"
 target_column = "hashtag"
 
-# Connect to MySQL
-with mysql.connector.connect(**config) as conn:
-    cursor = conn.cursor()
 
-    # Extract the length of talbe
-    query = f"SELECT * FROM {main_table}"
-    cursor.execute(query)
-    fetch_data = cursor.fetchall()
-    range_all_data = range(len(fetch_data))
+async def create_pool():  # Function: Create a coroutine to create a database connection pool
+    global pool
+    pool = await aiomysql.create_pool(**config)
 
-    # Extract the most popular keywords
-    query = f"SELECT SUBSTRING_INDEX(SUBSTRING_INDEX({target_column}, ',', n), ',', -1) AS tag_word, COUNT(*) AS cnt FROM {main_table} CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) AS nums WHERE n <= 1 + LENGTH({target_column}) - LENGTH(REPLACE({target_column}, ',', '')) GROUP BY tag_word ORDER BY cnt DESC LIMIT 6;"
-    cursor.execute(query)
 
-    # Quick replies labels
-    quick_replies_labels = [result[0] for result in cursor.fetchall()]
+async def init_cache():  # Function: Create a coroutine to initialize the cache with *data from the database
+    global cache_data
+    global range_all_data
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # Execute a SELECT statement to retrieve all rows from the "main" table
+            await cur.execute("SELECT * FROM main;")
+            # Store the fetched rows in the cache_data variable
+            cache_data = await cur.fetchall()
+            range_all_data = range(len(cache_data))
 
-# Quick replies format
-quick_replies = [
-    {
-        "label": label,
-        "action": "block",
-        "blockId": block_id_send_img,
-        "extra": {"name": label},
-    }
-    for label in quick_replies_labels
-]
 
-# Fallback message format
-fallback_res = {
-    "version": "2.0",
-    "template": {
-        "outputs": [{"simpleText": {"text": "데이터가 없습니다."}}],
-        "quickReplies": quick_replies,
-    },
-}
+async def get_quick_replies():  # Create a coroutine to initialize the cache with quick_replies_data from the database
+    global quick_replies_labels
+    global quick_replies
+    global fallback_res
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            # Extract the most popular keywords
+            query = f"SELECT SUBSTRING_INDEX(SUBSTRING_INDEX({target_column}, ',', n), ',', -1) AS tag_word, COUNT(*) AS cnt FROM {main_table} CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) AS nums WHERE n <= 1 + LENGTH({target_column}) - LENGTH(REPLACE({target_column}, ',', '')) GROUP BY tag_word ORDER BY cnt DESC LIMIT 6;"
+            await cur.execute(query)
+            popular_keywords = await cur.fetchall()
+            # Store the fetched rows in the range_all_data variable
+            quick_replies_labels = [result[0] for result in popular_keywords]
+
+            # Quick replies format
+            quick_replies = [
+                {
+                    "label": label,
+                    "action": "block",
+                    "blockId": block_id_send_img,
+                    "extra": {"name": label},
+                }
+                for label in quick_replies_labels
+            ]
+
+            # Fallback message format
+            fallback_res = {
+                "version": "2.0",
+                "template": {
+                    "outputs": [{"simpleText": {"text": "데이터가 없습니다."}}],
+                    "quickReplies": quick_replies,
+                },
+            }
+
+
+# Create a coroutine to perform a keyword search on the cached data
+async def query_keyword(keyword: str):
+    # Search the cached data for the keyword
+    result = [entry[1] for entry in cache_data if keyword in entry[2]]
+    return result
+
+
+async def update_cache_every_hour():  # Create a coroutine to update the cache every hour
+    while True:
+        # Reinitialize the cache with quick replies data from the database
+        await init_cache()
+        await get_quick_replies()
+        # Wait for 3600 seconds before updating the cache again
+        await asyncio.sleep(3600)
 
 
 # Function: Get category name from the request
@@ -116,16 +157,17 @@ async def send_img_res(
 # Function: url check
 async def url_check(check_data: list) -> list:
     items = []
-
+    # print(f'🎯check_data : {check_data}')
+    # print(f'🎯type(check_data) : {type(check_data)}')
     for result in check_data:
         if len(items) == 3:
             return items
 
         # Send a HTTP request to the image URL
         try:
-            response = requests.get(result[1])
+            response = requests.get(result)
         except Exception as e:
-            print("Response_passed", e)
+            # print("Response_passed", e)
             continue
 
         # Check status code and delete the failed URL
@@ -139,7 +181,7 @@ async def url_check(check_data: list) -> list:
             #     result,
             # )
             # conn.commit()
-            print("passed")
+            # print("passed")
             pass
 
         else:
@@ -147,9 +189,9 @@ async def url_check(check_data: list) -> list:
             items.append(
                 {
                     "thumbnail": {
-                        "imageUrl": result[1],
+                        "imageUrl": result,
                         "fixedRatio": True,
-                        "link": {"web": result[1]},
+                        "link": {"web": result},
                     },
                     "buttons": [
                         {"action": "share", "label": "공유하기", "messageText": "공유하기"}
@@ -162,41 +204,34 @@ async def url_check(check_data: list) -> list:
 
 # Function: Get the image data from MySQL database
 async def get_image_data(category_name: str = "무작위", custom_query="None"):
-    # Images to be sent to Kakao
+    # Images to be sent to Kakao & Ad-hoc search algorithm
+    if category_name == "무작위":
+        random_list = random.sample(range_all_data, k=len(range_all_data))
+        items = []
+        for i in random_list[:10]:
+            if len(items) == 3:
+                return items
 
-    # Connect to MySQL
-    with mysql.connector.connect(**config) as conn:
-        cursor = conn.cursor()
+            tmp_list = []
+            # id = cache_data[i][0]
+            # print(f'cache_data[i] : {cache_data[i]}')
 
-        # ﻿URL 컬럼 변경 : ﻿URL -> url
-        # cursor.execute("ALTER TABLE tmp_data CHANGE ﻿URL url TEXT;")
+            tmp_list.append(cache_data[i][1])
+            # print(f'{i} 번째 url : {tmp_list}')
+            # hashtag = cache_data[i][2]
 
-        # Ad-hoc search algorithm
-        if category_name == "무작위":
-            random_list = random.sample(range_all_data, k=len(range_all_data))
-            items = []
-            for i in random_list:
-                if len(items) == 3:
-                    return items
-                query = f"select * from {main_table} where id in ('{i}')"
-                cursor.execute(query)
-                a = await url_check(check_data=cursor.fetchall())
-                items.extend(a)
-                
-            
+            tmp_data = await url_check(check_data=tmp_list)
+            # print(f'tmp_data : {tmp_data}')
+            items.extend(tmp_data)
+            # print(f'items : {items}')
 
-        elif category_name != "무작위":
-            query = f"SELECT * FROM {main_table} where {target_column} like ('%{category_name}%') ORDER BY RAND();"
+    elif category_name != "무작위":
+        return await url_check(await query_keyword(category_name))
 
-        elif custom_query != "None":
-            query = custom_query
-
-        # Get the URLs from the main table
-        cursor.execute(query)
-
-        items = await url_check(check_data=cursor.fetchall())
-        # Process each row of the result set
-
+    # elif custom_query != "None":
+    #     query = custom_query
+    #     cursor.execute(query)
+    #     items = await url_check(check_data=query)
     return items
 
 
@@ -219,6 +254,13 @@ async def get_keyword_with_gpt(input_sentence: str) -> list:
     category_list = [category.rstrip(".") for category in category_lists]
 
     return category_list
+
+
+@app.on_event("startup")
+async def on_startup():  # Register an event handler to create a database connection pool when the app starts up
+    await create_pool()
+    # Register the update_cache_every_hour coroutine with the asyncio event loop
+    asyncio.ensure_future(update_cache_every_hour())
 
 
 # Route: Recommend images
@@ -375,16 +417,16 @@ async def talk_to_mememo(request: Request):
     # Get the user input
     # word_limit : 32767 | 32767byte
     input_sentence = req["action"]["detailParams"]["contents"]["origin"]
-    print(f"input_sentence : {input_sentence}")
+    # print(f"input_sentence : {input_sentence}")
 
     # Catching GPT-request limit errors
     try:
         answer = await get_keyword_with_gpt(input_sentence)
-        print(f"answer : {answer}")
+        # print(f"answer : {answer}")
         # Get the number of elements in the answer list
         num_answers = len(answer)
     except Exception as e:
-        print(e)
+        # print(e)
         return JSONResponse(content=fallback_res)
 
     # Construct a SQL query that looks for matches of each answer in the target column
@@ -412,7 +454,7 @@ async def talk_to_mememo(request: Request):
         HAVING {count_column} >= 1
         ORDER BY {count_column} DESC;
         """
-    print(query)
+    # print(query)
     items = await get_image_data(custom_query=query)
 
     if len(items) == 0:
