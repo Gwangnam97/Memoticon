@@ -1,11 +1,26 @@
+# %%
 import pandas as pd
+
+
+# 문자열 분리 및 중복 제거 함수
+def split_and_remove_duplicates(row):
+    split_values = row["hashtag"].split(",")
+    unique_values = list(set(split_values))
+    return ",".join(unique_values)
+
+
+# `,`로 시작하는 row를 삭제하는 함수
+def remove_comma_starting_rows(row):
+    if row["hashtag"].startswith(","):
+        return row["hashtag"][1:]
+    else:
+        return row["hashtag"]
 
 
 def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     print(f"origin len : {len(df)}")
     df.drop(
-        columns=["text", "hashtag", "crawled_at",
-                 "text_tag", "ocr_text", "ocr_tag"],
+        columns=["text", "hashtag", "crawled_at", "text_tag", "ocr_text", "ocr_tag"],
         inplace=True,
     )
 
@@ -40,8 +55,7 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     # print(df_duplicate.head(20))
 
     # 그룹화 및 병합
-    df_dup_merged = df_duplicate.groupby(
-        "url").agg({"hashtag": "sum"}).reset_index()
+    df_dup_merged = df_duplicate.groupby("url").agg({"hashtag": "sum"}).reset_index()
     print(f"len(df_dup_merged) : {len(df_dup_merged)}", end="\n\n")
 
     print(
@@ -52,19 +66,6 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     # 유니크, 중복 데이터 병합
     df = pd.concat([df_unique, df_dup_merged]).reset_index(drop=True)
 
-    # 문자열 분리 및 중복 제거 함수
-    def split_and_remove_duplicates(row):
-        split_values = row["hashtag"].split(",")
-        unique_values = list(set(split_values))
-        return ",".join(unique_values)
-
-    # `,`로 시작하는 row를 삭제하는 함수
-    def remove_comma_starting_rows(row):
-        if row["hashtag"].startswith(","):
-            return row["hashtag"][1:]
-        else:
-            return row["hashtag"]
-
     # apply() 메소드를 이용하여 각 row에 함수 적용
     df["hashtag"] = df.apply(remove_comma_starting_rows, axis=1)
     df["hashtag"] = df.apply(split_and_remove_duplicates, axis=1)
@@ -74,6 +75,22 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
 
     # List of keywords to filter out
     filter_list = [
+        "대권",
+        "박형준",
+        "강경화",
+        "청문회",
+        "변희재",
+        "손혜원",
+        "김진태",
+        "홍준표",
+        "의원",
+        "국당",
+        "후보자",
+        "윤석렬",
+        "박근혜",
+        "총리후보",
+        "대권후보",
+        "최민희",
         "19",
         "29금",
         "75G컵",
@@ -146,6 +163,31 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
         "팬더",
         "팬더티비",
         "후방",
+        "김영춘",
+        "자한당",
+        "도지사",
+        "대선후보",
+        "서울시장",
+        "윤석열",
+        "이재명",
+        "대통령",
+        "국힘",
+        "조국",
+        "조후보",
+        "진보",
+        "보수",
+        "교육감",
+        "박정희",
+        "자유당",
+        "국민의당",
+        "문재인",
+        "새누리당",
+        "국회의원",
+        "대선",
+        "국정원",
+        "미래통합당",
+        "안철수",
+        "부실후보",
     ]
 
     filter_list = list(set(filter_list))
@@ -155,13 +197,11 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     index_cfw = []
 
     for filter_word in filter_list:
-        contain_word_index_list = df[df["hashtag"].str.contains(
-            filter_word)].index
+        contain_word_index_list = df[df["hashtag"].str.contains(filter_word)].index
         index_cfw.extend(contain_word_index_list)
 
     index_cfw = list(set(index_cfw))
-    print(
-        f"num of filterd index = len(index_cfw) : {len(index_cfw)}", end="\n\n\n")
+    print(f"num of filterd index = len(index_cfw) : {len(index_cfw)}", end="\n\n\n")
     # =======================================================================================
 
     df2 = df.loc[df.index.isin(index_cfw)]
@@ -179,8 +219,7 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
 def get_hashtag_count(df: pd.DataFrame) -> pd.DataFrame:
     # 각 태그마다 등장 횟수를 세어서 내림차순으로 정렬
     hashtag_count = (
-        df["hashtag"].str.split(
-            ",", expand=True).stack().value_counts().reset_index()
+        df["hashtag"].str.split(",", expand=True).stack().value_counts().reset_index()
     )
     hashtag_count.columns = ["hashtag", "count"]
 
@@ -203,7 +242,16 @@ if __name__ == "__main__":
 
     df = pd.read_csv(rf"{path}", low_memory=False, memory_map=True)
     df = preprocessing(df)
-    df.to_csv('./tmp_data.csv', index_label="id")
 
-    df_tag = get_hashtag_count(df)
-    df_tag.to_csv('./hashtag.csv')
+    ddf = df[df["url"].str.contains("jjalbox") == False]
+    print(f"except jjalbox : {len(ddf)}")
+    ddf.to_csv('./filtered_data.csv',index=False)
+
+    # df.dropna(subset=["hashtag"], inplace=True)
+    # df = df[df["hashtag"].str.contains("후보")]
+    # df.to_csv("./tmp_tag.csv")
+    # df.to_csv('./tmp_data.csv', index_label="id")
+    # print(len(df))
+
+    # df_tag = get_hashtag_count(df)
+    # df_tag.to_csv('./hashtag.csv')

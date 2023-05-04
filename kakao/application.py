@@ -5,46 +5,18 @@ from fastapi import FastAPI, Request
 import requests
 import openai
 import os
+import random
+
 # from dotenv import load_dotenv
 
 # load_dotenv()  # .env 파일에서 API 키를 불러옴
 
-# 이미지 url != 200 인것들 리스트에 담아서 나중에 처리 
+# 이미지 url != 200 인것들 리스트에 담아서 나중에 처리
 # 즉 이미지를 전송 완료한 후에 깨진_이미지_리스트 를 DB에서 삭제 후 history에 저장
 # modify del_history !!!
 # modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
-# modify del_history !!!
+# get_image_data rand parameter 수정해!!!
+# get_image_data rand parameter 수정해!!!
 
 app = FastAPI()
 
@@ -54,8 +26,7 @@ block_id_send_img = "64477498d853bb56940a87bd"
 
 
 # MySQL connection configuration
-config = {"host": "localhost", "user": "root",
-          "password": "1234", "database": "sys"}
+config = {"host": "localhost", "user": "root", "password": "1234", "database": "sys"}
 
 # Define tables & columns, Delete & save rows to del_history
 main_table = "sys.main"
@@ -67,9 +38,14 @@ target_column = "hashtag"
 with mysql.connector.connect(**config) as conn:
     cursor = conn.cursor()
 
+    # Extract the length of talbe
+    query = f"SELECT * FROM {main_table}"
+    cursor.execute(query)
+    fetch_data = cursor.fetchall()
+    range_all_data = range(len(fetch_data))
+
     # Extract the most popular keywords
     query = f"SELECT SUBSTRING_INDEX(SUBSTRING_INDEX({target_column}, ',', n), ',', -1) AS tag_word, COUNT(*) AS cnt FROM {main_table} CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) AS nums WHERE n <= 1 + LENGTH({target_column}) - LENGTH(REPLACE({target_column}, ',', '')) GROUP BY tag_word ORDER BY cnt DESC LIMIT 6;"
-
     cursor.execute(query)
 
     # Quick replies labels
@@ -133,13 +109,60 @@ async def send_img_res(
             "quickReplies": quick_replies,
         },
     }
+
     return JSONResponse(content=res)
 
 
-# Function: Get the image data from MySQL database
-async def get_image_data(category_name: str = "None", random: bool = False, custom_query="None"):
-    # Images to be sent to Kakao
+# Function: url check
+async def url_check(check_data: list) -> list:
     items = []
+
+    for result in check_data:
+        if len(items) == 3:
+            return items
+
+        # Send a HTTP request to the image URL
+        try:
+            response = requests.get(result[1])
+        except Exception as e:
+            print("Response_passed", e)
+            continue
+
+        # Check status code and delete the failed URL
+        if response.status_code != 200:
+            # cursor.execute(
+            #     f"DELETE FROM {main_table} WHERE url = '{result[1]}'")
+            # conn.commit()
+
+            # cursor.execute(
+            #     f"INSERT IGNORE INTO {del_table} (img_id, url, text, hashtag, crawled_at, text_tag) VALUES (%s,%s,%s,%s,%s,%s)",
+            #     result,
+            # )
+            # conn.commit()
+            print("passed")
+            pass
+
+        else:
+            # Add the URL to the list of items
+            items.append(
+                {
+                    "thumbnail": {
+                        "imageUrl": result[1],
+                        "fixedRatio": True,
+                        "link": {"web": result[1]},
+                    },
+                    "buttons": [
+                        {"action": "share", "label": "공유하기", "messageText": "공유하기"}
+                    ],
+                }
+            )
+
+    return items
+
+
+# Function: Get the image data from MySQL database
+async def get_image_data(category_name: str = "무작위", custom_query="None"):
+    # Images to be sent to Kakao
 
     # Connect to MySQL
     with mysql.connector.connect(**config) as conn:
@@ -150,61 +173,29 @@ async def get_image_data(category_name: str = "None", random: bool = False, cust
 
         # Ad-hoc search algorithm
         if category_name == "무작위":
-            random = True
+            random_list = random.sample(range_all_data, k=len(range_all_data))
+            items = []
+            for i in random_list:
+                if len(items) == 3:
+                    return items
+                query = f"select * from {main_table} where id in ('{i}')"
+                cursor.execute(query)
+                a = await url_check(check_data=cursor.fetchall())
+                items.extend(a)
+                
+            
 
-        if custom_query != "None":
-            query = custom_query
-            pass
-        elif random == False:
+        elif category_name != "무작위":
             query = f"SELECT * FROM {main_table} where {target_column} like ('%{category_name}%') ORDER BY RAND();"
-        else:
-            query = f"SELECT * FROM {main_table} ORDER BY RAND();"
+
+        elif custom_query != "None":
+            query = custom_query
 
         # Get the URLs from the main table
         cursor.execute(query)
 
+        items = await url_check(check_data=cursor.fetchall())
         # Process each row of the result set
-        for result in cursor.fetchall():
-            if len(items) == 3:
-                return items
-
-            # Send a HTTP request to the image URL
-            try:
-                response = requests.get(result[1])
-            except Exception as e:
-                print("Response_passed", e)
-                continue
-
-            # Check status code and delete the failed URL
-            if response.status_code != 200:
-                # cursor.execute(
-                #     f"DELETE FROM {main_table} WHERE url = '{result[1]}'")
-                # conn.commit()
-
-                # cursor.execute(
-                #     f"INSERT IGNORE INTO {del_table} (img_id, url, text, hashtag, crawled_at, text_tag) VALUES (%s,%s,%s,%s,%s,%s)",
-                #     result,
-                # )
-                # conn.commit()
-                pass
-
-            else:
-                # Add the URL to the list of items
-                items.append(
-                    {
-                        "thumbnail": {
-                            "imageUrl": result[1],
-                            "fixedRatio": True,
-                            "link": {"web": result[1]},
-                        },
-                        "buttons": [
-                            {"action": "share", "label": "공유하기",
-                                "messageText": "공유하기"}
-                        ],
-                    }
-                )
-
-    print(items)
 
     return items
 
@@ -216,9 +207,11 @@ async def get_keyword_with_gpt(input_sentence: str) -> list:
 
     # Extract key words from sentences using the GPT-3 model
     messages = [
-        {"role": "user", "content": f"아래 문장에서 핵심단어를 3개만 추출해주세요. \n\n {input_sentence}"}]
+        {"role": "user", "content": f"아래 문장에서 핵심단어를 3개만 추출해주세요. \n\n {input_sentence}"}
+    ]
     completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo", messages=messages, temperature=0.2)
+        model="gpt-3.5-turbo", messages=messages, temperature=0.2
+    )
     category_name = completion.choices[0].message.content
 
     # Convert the extracted words into a list
@@ -359,7 +352,6 @@ async def send_img(request: Request):
     category_name = await get_category_name(req)
 
     items = await get_image_data(category_name)
-
     if len(items) == 0:
         return JSONResponse(content=fallback_res)
 
@@ -369,12 +361,10 @@ async def send_img(request: Request):
 # Route: Send random images
 @app.post("/send_img_random")
 async def send_img_random(request: Request):
-    req = await request.json()
-    print(req)
-    items = await get_image_data(random=True)
+
+    items = await get_image_data()
 
     return await send_img_res(items, block_id_send_img_random)
-    # return JSONResponse(content=fallback_res)
 
 
 # Route: Extract keyword and send images
@@ -385,12 +375,12 @@ async def talk_to_mememo(request: Request):
     # Get the user input
     # word_limit : 32767 | 32767byte
     input_sentence = req["action"]["detailParams"]["contents"]["origin"]
-    print(f'input_sentence : {input_sentence}')
+    print(f"input_sentence : {input_sentence}")
 
     # Catching GPT-request limit errors
     try:
         answer = await get_keyword_with_gpt(input_sentence)
-        print(f'answer : {answer}')
+        print(f"answer : {answer}")
         # Get the number of elements in the answer list
         num_answers = len(answer)
     except Exception as e:
@@ -407,7 +397,8 @@ async def talk_to_mememo(request: Request):
     # For example: "(CASE WHEN text_tag LIKE '%0%' THEN 1 ELSE 0 END) +
     #               (CASE WHEN text_tag LIKE '%1%' THEN 1 ELSE 0 END)"
     select_query = " + ".join(
-        [f"(CASE WHEN {target_column} LIKE '%{a}%' THEN 1 ELSE 0 END)" for a in answer])
+        [f"(CASE WHEN {target_column} LIKE '%{a}%' THEN 1 ELSE 0 END)" for a in answer]
+    )
 
     # Construct the final SQL query that selects all rows from the main table that have at least one match
     # to any element in the answer list, and calculates the count of matches for each row using the select_query.
@@ -421,8 +412,8 @@ async def talk_to_mememo(request: Request):
         HAVING {count_column} >= 1
         ORDER BY {count_column} DESC;
         """
-
-    items = await get_image_data(random=False, custom_query=query)
+    print(query)
+    items = await get_image_data(custom_query=query)
 
     if len(items) == 0:
         return JSONResponse(content=fallback_res)

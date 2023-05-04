@@ -1,0 +1,36 @@
+[
+  {
+    "thumbnail": {
+      "imageUrl": "https://i.pinimg.com/originals/42/e5/33/42e533df85de45bc4f67bfa937cfde81.png",
+      "fixedRatio": true,
+      "link": {
+        "web": "https://i.pinimg.com/originals/42/e5/33/42e533df85de45bc4f67bfa937cfde81.png"
+      }
+    },
+    "buttons": [
+      { "action": "share", "label": "공유하기", "messageText": "공유하기" }
+    ]
+  },
+  {
+    "thumbnail": {
+      "imageUrl": "https://2runzzal.com/thumgif/IiLfEhlWnL.gif",
+      "fixedRatio": true,
+      "link": { "web": "https://2runzzal.com/thumgif/IiLfEhlWnL.gif" }
+    },
+    "buttons": [
+      { "action": "share", "label": "공유하기", "messageText": "공유하기" }
+    ]
+  },
+  {
+    "thumbnail": {
+      "imageUrl": "https://i.pinimg.com/originals/08/e3/e7/08e3e7d564253f1dbd8db53783996687.jpg",
+      "fixedRatio": true,
+      "link": {
+        "web": "https://i.pinimg.com/originals/08/e3/e7/08e3e7d564253f1dbd8db53783996687.jpg"
+      }
+    },
+    "buttons": [
+      { "action": "share", "label": "공유하기", "messageText": "공유하기" }
+    ]
+  }
+]

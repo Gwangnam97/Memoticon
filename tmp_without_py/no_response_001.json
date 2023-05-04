@@ -1,0 +1,120 @@
+{
+  "version": "2.0",
+  "template": {
+    "outputs": [
+      {
+        "basicCard": {
+          "title": "무작위의 밈을 추천해드립니다. 더 많은 밈을 보고싶은 경우 아래의 더보기를 눌러주세요",
+          "buttons": [
+            {
+              "action": "block",
+              "label": "더보기",
+              "blockId": "644a0944b5e5636c2125a14c",
+              "extra": { "name": "무작위" }
+            }
+          ]
+        }
+      },
+      {
+        "carousel": {
+          "type": "basicCard",
+          "items": [
+            {
+              "thumbnail": {
+                "imageUrl": "https://jjalbox.com/data/editor/2110/20211021_61711097817f0.jpg",
+                "fixedRatio": true,
+                "link": {
+                  "web": "https://jjalbox.com/data/editor/2110/20211021_61711097817f0.jpg"
+                }
+              },
+              "buttons": [
+                {
+                  "action": "share",
+                  "label": "공유하기",
+                  "messageText": "공유하기"
+                }
+              ]
+            },
+            {
+              "thumbnail": {
+                "imageUrl": "https://jjalbox.com/data/editor/202101/5ff7d6b31f5ea_89315_0.jpg",
+                "fixedRatio": true,
+                "link": {
+                  "web": "https://jjalbox.com/data/editor/202101/5ff7d6b31f5ea_89315_0.jpg"
+                }
+              },
+              "buttons": [
+                {
+                  "action": "share",
+                  "label": "공유하기",
+                  "messageText": "공유하기"
+                }
+              ]
+            },
+            {
+              "thumbnail": {
+                "imageUrl": "http://t1.daumcdn.net/thumb/R800x0/?fname=http://i.imgur.com//3Of90y5.jpg",
+                "fixedRatio": true,
+                "link": {
+                  "web": "4MB",
+                  "web": "4MB",
+                  "web": "4MB",
+                  "web": "4MB",
+                  "web": "4MB",
+                  "web": "4MB",
+                  "web": "4MB",
+                  "web": "4MB"
+                }
+              },
+              "buttons": [
+                {
+                  "action": "share",
+                  "label": "공유하기",
+                  "messageText": "공유하기"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "quickReplies": [
+      {
+        "label": "jpg",
+        "action": "block",
+        "blockId": "64477498d853bb56940a87bd",
+        "extra": { "name": "jpg" }
+      },
+      {
+        "label": "하다",
+        "action": "block",
+        "blockId": "64477498d853bb56940a87bd",
+        "extra": { "name": "하다" }
+      },
+      {
+        "label": "GIF",
+        "action": "block",
+        "blockId": "64477498d853bb56940a87bd",
+        "extra": { "name": "GIF" }
+      },
+      {
+        "label": "이유",
+        "action": "block",
+        "blockId": "64477498d853bb56940a87bd",
+        "extra": { "name": "이유" }
+      },
+      {
+        "label": "근황",
+        "action": "block",
+        "blockId": "64477498d853bb56940a87bd",
+        "extra": { "name": "근황" }
+      },
+      {
+        "label": "되다",
+        "action": "block",
+        "blockId": "64477498d853bb56940a87bd",
+        "extra": { "name": "되다" }
+      }
+    ]
+  }
+}
