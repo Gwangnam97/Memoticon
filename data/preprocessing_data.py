@@ -246,12 +246,3 @@ if __name__ == "__main__":
     ddf = df[df["url"].str.contains("jjalbox") == False]
     print(f"except jjalbox : {len(ddf)}")
     ddf.to_csv('./filtered_data.csv',index=False)
-
-    # df.dropna(subset=["hashtag"], inplace=True)
-    # df = df[df["hashtag"].str.contains("후보")]
-    # df.to_csv("./tmp_tag.csv")
-    # df.to_csv('./tmp_data.csv', index_label="id")
-    # print(len(df))
-
-    # df_tag = get_hashtag_count(df)
-    # df_tag.to_csv('./hashtag.csv')

@@ -1,25 +1,15 @@
-import uvicorn
-import mysql.connector
-from fastapi.responses import JSONResponse
-from fastapi import FastAPI, Request
-import requests
 import openai
 import os
 import random
 import aiomysql
 import asyncio
+import aiohttp
 import uvicorn
 
-# from dotenv import load_dotenv
-
-# load_dotenv()  # .env 파일에서 API 키를 불러옴
-
-# 이미지 url != 200 인것들 리스트에 담아서 나중에 처리
-# 즉 이미지를 전송 완료한 후에 깨진_이미지_리스트 를 DB에서 삭제 후 history에 저장
-# modify del_history !!!
-# modify del_history !!!
-# get_image_data rand parameter 수정해!!!
-# get_image_data rand parameter 수정해!!!
+from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request
+import tracemalloc
+tracemalloc.start()
 
 # Initialize the FastAPI app
 app = FastAPI()
@@ -31,8 +21,8 @@ block_id_send_img = "64477498d853bb56940a87bd"
 
 # Define the database connection configuration
 config = {
-    "host": "localhost",
-    "port": 3306,
+    "host": "52.78.88.87",
+    "port": 54978,
     "user": "root",
     "password": "1234",
     "db": "sys"
@@ -41,17 +31,19 @@ config = {
 
 # Define tables & columns, Delete & save rows to del_history
 main_table = "sys.main"
-del_table = "del_history"
+del_table = "sys.del_history"
 count_column = "count_sum"
 target_column = "hashtag"
 
 
 async def create_pool():  # Function: Create a coroutine to create a database connection pool
+    print("creating pool")
     global pool
     pool = await aiomysql.create_pool(**config)
 
 
 async def init_cache():  # Function: Create a coroutine to initialize the cache with *data from the database
+    print("start init_cache")
     global cache_data
     global range_all_data
     async with pool.acquire() as conn:
@@ -61,9 +53,56 @@ async def init_cache():  # Function: Create a coroutine to initialize the cache 
             # Store the fetched rows in the cache_data variable
             cache_data = await cur.fetchall()
             range_all_data = range(len(cache_data))
+            # id = cache_data[i][0]
+            # hashtag = cache_data[i][2]
+            # url = cache_data[i][1]
+            print(f'len(cache_data) : {len(cache_data)}')
+            print(f'done init_cache')
 
 
-async def get_quick_replies():  # Create a coroutine to initialize the cache with quick_replies_data from the database
+async def url_check(check_data):  # Function: url check
+    items = []
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            try:
+                # Set timeout to None
+                timeout = aiohttp.ClientTimeout(total=None)
+                async with aiohttp.ClientSession(timeout=timeout) as session:
+
+                    # Send a HTTP request to the image URL
+                    async with session.get(check_data[1]) as response:
+
+                        # Check status code and delete the failed URL
+                        if response.status != 200:
+                            await cur.execute(f"DELETE FROM {main_table} WHERE url = '{check_data[1]}'")
+                            await cur.execute(f"INSERT IGNORE INTO {del_table} (img_id, url, hashtag) VALUES (%s,%s,%s)", (check_data[0], check_data[1], check_data[2]))
+                            await conn.commit()
+                        else:
+                            # Add the URL to the list of items
+                            items.append(
+                                {
+                                    "thumbnail": {
+                                        "imageUrl": check_data[1],
+                                        "fixedRatio": True,
+                                        "link": {"web": check_data[1]},
+                                    },
+                                    "buttons": [
+                                        {"action": "share", "label": "공유하기",
+                                            "messageText": "공유하기"}
+                                    ],
+                                }
+                            )
+            except aiohttp.ClientError:
+                pass
+
+    # await asyncio.gather(*items)
+
+    return items
+
+
+async def get_quick_replies():  # Function: Create a coroutine to initialize the cache with quick_replies_data from the database
+    print("start get_quick_replies")
     global quick_replies_labels
     global quick_replies
     global fallback_res
@@ -75,6 +114,8 @@ async def get_quick_replies():  # Create a coroutine to initialize the cache wit
             popular_keywords = await cur.fetchall()
             # Store the fetched rows in the range_all_data variable
             quick_replies_labels = [result[0] for result in popular_keywords]
+
+            # await asyncio.gather(*quick_replies_labels)
 
             # Quick replies format
             quick_replies = [
@@ -95,20 +136,27 @@ async def get_quick_replies():  # Create a coroutine to initialize the cache wit
                     "quickReplies": quick_replies,
                 },
             }
+    print("done get_quick_replies")
 
 
-# Create a coroutine to perform a keyword search on the cached data
-async def query_keyword(keyword: str):
+# Function: Create a coroutine to perform a keyword search on the cached data
+async def query_keyword(keyword: str, index):
     # Search the cached data for the keyword
-    result = [entry[1] for entry in cache_data if keyword in entry[2]]
+    result = [[entry[0], entry[1], entry[2]]
+              for entry in cache_data[index] if keyword in entry[2]]
+
+    # await asyncio.gather(*result)
+
     return result
 
 
-async def update_cache_every_hour():  # Create a coroutine to update the cache every hour
+async def update_cache_every_hour():  # Function: Create a coroutine to update the cache every hour
+    print("start update_cache_every_hour")
     while True:
         # Reinitialize the cache with quick replies data from the database
         await init_cache()
         await get_quick_replies()
+        print("SERVER IS READY")
         # Wait for 3600 seconds before updating the cache again
         await asyncio.sleep(3600)
 
@@ -154,84 +202,44 @@ async def send_img_res(
     return JSONResponse(content=res)
 
 
-# Function: url check
-async def url_check(check_data: list) -> list:
-    items = []
-    # print(f'🎯check_data : {check_data}')
-    # print(f'🎯type(check_data) : {type(check_data)}')
-    for result in check_data:
-        if len(items) == 3:
-            return items
-
-        # Send a HTTP request to the image URL
-        try:
-            response = requests.get(result)
-        except Exception as e:
-            # print("Response_passed", e)
-            continue
-
-        # Check status code and delete the failed URL
-        if response.status_code != 200:
-            # cursor.execute(
-            #     f"DELETE FROM {main_table} WHERE url = '{result[1]}'")
-            # conn.commit()
-
-            # cursor.execute(
-            #     f"INSERT IGNORE INTO {del_table} (img_id, url, text, hashtag, crawled_at, text_tag) VALUES (%s,%s,%s,%s,%s,%s)",
-            #     result,
-            # )
-            # conn.commit()
-            # print("passed")
-            pass
-
-        else:
-            # Add the URL to the list of items
-            items.append(
-                {
-                    "thumbnail": {
-                        "imageUrl": result,
-                        "fixedRatio": True,
-                        "link": {"web": result},
-                    },
-                    "buttons": [
-                        {"action": "share", "label": "공유하기", "messageText": "공유하기"}
-                    ],
-                }
-            )
-
-    return items
-
-
 # Function: Get the image data from MySQL database
 async def get_image_data(category_name: str = "무작위", custom_query="None"):
     # Images to be sent to Kakao & Ad-hoc search algorithm
     if category_name == "무작위":
         random_list = random.sample(range_all_data, k=len(range_all_data))
         items = []
-        for i in random_list[:10]:
+
+        for i in random_list:
             if len(items) == 3:
                 return items
 
-            tmp_list = []
-            # id = cache_data[i][0]
-            # print(f'cache_data[i] : {cache_data[i]}')
-
-            tmp_list.append(cache_data[i][1])
-            # print(f'{i} 번째 url : {tmp_list}')
-            # hashtag = cache_data[i][2]
-
-            tmp_data = await url_check(check_data=tmp_list)
-            # print(f'tmp_data : {tmp_data}')
-            items.extend(tmp_data)
-            # print(f'items : {items}')
+            items.extend(await url_check(check_data=cache_data[i]))
 
     elif category_name != "무작위":
-        return await url_check(await query_keyword(category_name))
+        random_list = random.sample(range_all_data, k=len(range_all_data))
+        items = []
 
-    # elif custom_query != "None":
-    #     query = custom_query
-    #     cursor.execute(query)
-    #     items = await url_check(check_data=query)
+        for i in random_list:
+            if len(items) == 3:
+                return items
+
+            result = await query_keyword(category_name, i)
+            items.extend(await url_check(result))
+
+    elif custom_query != "None":
+        items = []
+        query = custom_query
+        async with pool.acquire() as conn:
+            async with conn.cursor() as cur:
+                cur.execute(query)
+
+                custom_query_cache_datas = await cur.fetchall()
+
+        for custom_query_cache_data in custom_query_cache_datas:
+            if len(items) == 3:
+                return items
+            items.extend(await url_check(check_data=custom_query_cache_data))
+
     return items
 
 
@@ -258,6 +266,7 @@ async def get_keyword_with_gpt(input_sentence: str) -> list:
 
 @app.on_event("startup")
 async def on_startup():  # Register an event handler to create a database connection pool when the app starts up
+    print("SEVER STARTUP")
     await create_pool()
     # Register the update_cache_every_hour coroutine with the asyncio event loop
     asyncio.ensure_future(update_cache_every_hour())
@@ -393,7 +402,7 @@ async def send_img(request: Request):
     # Select category
     category_name = await get_category_name(req)
 
-    items = await get_image_data(category_name)
+    items = await get_image_data(await get_category_name(req))
     if len(items) == 0:
         return JSONResponse(content=fallback_res)
 
@@ -417,16 +426,14 @@ async def talk_to_mememo(request: Request):
     # Get the user input
     # word_limit : 32767 | 32767byte
     input_sentence = req["action"]["detailParams"]["contents"]["origin"]
-    # print(f"input_sentence : {input_sentence}")
 
     # Catching GPT-request limit errors
     try:
         answer = await get_keyword_with_gpt(input_sentence)
-        # print(f"answer : {answer}")
+
         # Get the number of elements in the answer list
-        num_answers = len(answer)
+        num_answer = len(answer)
     except Exception as e:
-        # print(e)
         return JSONResponse(content=fallback_res)
 
     # Construct a SQL query that looks for matches of each answer in the target column
@@ -445,7 +452,7 @@ async def talk_to_mememo(request: Request):
     # Construct the final SQL query that selects all rows from the main table that have at least one match
     # to any element in the answer list, and calculates the count of matches for each row using the select_query.
     # The rows are ordered by the count of matches in descending order.
-    if num_answers > 0:
+    if num_answer > 0:
         query = f"""
         SELECT *,
             ({select_query}) AS {count_column}
@@ -455,7 +462,11 @@ async def talk_to_mememo(request: Request):
         ORDER BY {count_column} DESC;
         """
     # print(query)
+
+    # items = await get_image_data(custom_query=query)
     items = await get_image_data(custom_query=query)
+
+    print(len(items))
 
     if len(items) == 0:
         return JSONResponse(content=fallback_res)
@@ -469,4 +480,4 @@ async def talk_to_mememo(request: Request):
 
 # Run the FastAPI application
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="127.0.0.1", port=5000)
