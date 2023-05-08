@@ -21,6 +21,7 @@ def remove_comma_starting_rows(row):
     else:
         return row["hashtag"]
 
+# 이미지 url 에 이미지가 존재 하는지 + 스토리형식 제외
 def is_exist(data):
     tmp = []
     for i in tqdm(range(len(data))):
