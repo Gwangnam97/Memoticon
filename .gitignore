@@ -4,7 +4,9 @@
 *.txt
 __pycache__
 *.jpg
+*.png
 .env
+
 
 # folder
 .vscode
