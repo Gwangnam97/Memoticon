@@ -1,6 +1,6 @@
-import openai
 import os
 import random
+import openai
 import aiomysql
 import asyncio
 import aiohttp
@@ -9,6 +9,7 @@ import uvicorn
 from fastapi.responses import JSONResponse
 from fastapi import FastAPI, Request
 import tracemalloc
+
 tracemalloc.start()
 
 # Initialize the FastAPI app
@@ -25,7 +26,7 @@ config = {
     "port": 54978,
     "user": "root",
     "password": "1234",
-    "db": "sys"
+    "db": "sys",
 }
 
 
@@ -56,8 +57,7 @@ async def init_cache():  # Function: Create a coroutine to initialize the cache 
             # id = cache_data[i][0]
             # hashtag = cache_data[i][2]
             # url = cache_data[i][1]
-            print(f'len(cache_data) : {len(cache_data)}')
-            print(f'done init_cache')
+            print(f"done init_cache")
 
 
 async def url_check(check_data):  # Function: url check
@@ -69,14 +69,17 @@ async def url_check(check_data):  # Function: url check
                 # Set timeout to None
                 timeout = aiohttp.ClientTimeout(total=None)
                 async with aiohttp.ClientSession(timeout=timeout) as session:
-
                     # Send a HTTP request to the image URL
                     async with session.get(check_data[1]) as response:
-
                         # Check status code and delete the failed URL
                         if response.status != 200:
-                            await cur.execute(f"DELETE FROM {main_table} WHERE url = '{check_data[1]}'")
-                            await cur.execute(f"INSERT IGNORE INTO {del_table} (img_id, url, hashtag) VALUES (%s,%s,%s)", (check_data[0], check_data[1], check_data[2]))
+                            await cur.execute(
+                                f"DELETE FROM {main_table} WHERE url = '{check_data[1]}'"
+                            )
+                            await cur.execute(
+                                f"INSERT IGNORE INTO {del_table} (img_id, url, hashtag) VALUES (%s,%s,%s)",
+                                (check_data[0], check_data[1], check_data[2]),
+                            )
                             await conn.commit()
                         else:
                             # Add the URL to the list of items
@@ -88,8 +91,11 @@ async def url_check(check_data):  # Function: url check
                                         "link": {"web": check_data[1]},
                                     },
                                     "buttons": [
-                                        {"action": "share", "label": "공유하기",
-                                            "messageText": "공유하기"}
+                                        {
+                                            "action": "share",
+                                            "label": "공유하기",
+                                            "messageText": "공유하기",
+                                        }
                                     ],
                                 }
                             )
@@ -142,8 +148,11 @@ async def get_quick_replies():  # Function: Create a coroutine to initialize the
 # Function: Create a coroutine to perform a keyword search on the cached data
 async def query_keyword(keyword: str, index):
     # Search the cached data for the keyword
-    result = [[entry[0], entry[1], entry[2]]
-              for entry in cache_data[index] if keyword in entry[2]]
+    result = [
+        [entry[0], entry[1], entry[2]]
+        for entry in cache_data[index]
+        if keyword in entry[2]
+    ]
 
     # await asyncio.gather(*result)
 
@@ -203,7 +212,7 @@ async def send_img_res(
 
 
 # Function: Get the image data from MySQL database
-async def get_image_data(category_name: str = "무작위", custom_query="None"):
+async def get_image_data(category_name: str = "무작위", many_category_name: str = "None"):
     # Images to be sent to Kakao & Ad-hoc search algorithm
     if category_name == "무작위":
         random_list = random.sample(range_all_data, k=len(range_all_data))
@@ -226,9 +235,9 @@ async def get_image_data(category_name: str = "무작위", custom_query="None"):
             result = await query_keyword(category_name, i)
             items.extend(await url_check(result))
 
-    elif custom_query != "None":
+    elif many_category_name != "None":
         items = []
-        query = custom_query
+        query = many_category_name
         async with pool.acquire() as conn:
             async with conn.cursor() as cur:
                 cur.execute(query)
@@ -412,7 +421,6 @@ async def send_img(request: Request):
 # Route: Send random images
 @app.post("/send_img_random")
 async def send_img_random(request: Request):
-
     items = await get_image_data()
 
     return await send_img_res(items, block_id_send_img_random)
@@ -435,38 +443,12 @@ async def talk_to_mememo(request: Request):
         num_answer = len(answer)
     except Exception as e:
         return JSONResponse(content=fallback_res)
-
-    # Construct a SQL query that looks for matches of each answer in the target column
-    # by using the LIKE operator and concatenating multiple OR conditions.
-    # For example: "text_tag LIKE '%0%' OR text_tag LIKE '%1%'"
-    like_query = " OR ".join([f"{target_column} LIKE '%{a}%'" for a in answer])
-
-    # Construct a SQL query that assigns a value of 1 to the count column for each match
-    # and a value of 0 for each non-match using a CASE statement.
-    # For example: "(CASE WHEN text_tag LIKE '%0%' THEN 1 ELSE 0 END) +
-    #               (CASE WHEN text_tag LIKE '%1%' THEN 1 ELSE 0 END)"
-    select_query = " + ".join(
-        [f"(CASE WHEN {target_column} LIKE '%{a}%' THEN 1 ELSE 0 END)" for a in answer]
-    )
-
-    # Construct the final SQL query that selects all rows from the main table that have at least one match
-    # to any element in the answer list, and calculates the count of matches for each row using the select_query.
-    # The rows are ordered by the count of matches in descending order.
-    if num_answer > 0:
-        query = f"""
-        SELECT *,
-            ({select_query}) AS {count_column}
-        FROM {main_table}
-        WHERE {like_query}
-        HAVING {count_column} >= 1
-        ORDER BY {count_column} DESC;
-        """
-    # print(query)
-
-    # items = await get_image_data(custom_query=query)
-    items = await get_image_data(custom_query=query)
+    
+    split_answer = answer
+    items = await get_image_data(many_category_name=split_answer)
 
     print(len(items))
+    print(items)
 
     if len(items) == 0:
         return JSONResponse(content=fallback_res)
