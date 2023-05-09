@@ -1,4 +1,3 @@
-#%%
 import openai
 
 openai.api_key = "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"
