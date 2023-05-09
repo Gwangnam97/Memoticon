@@ -18,6 +18,7 @@ async def update_dataframe(df):
     async with aiohttp.ClientSession() as session:
         tasks = []
         for url in df['url']:
+            print(f'url in progress : {url}')
             task = check_status(session, url)
             tasks.append(task)
 
