@@ -440,10 +440,9 @@ async def talk_to_mememo(request: Request):
         answer = await get_keyword_with_gpt(input_sentence)
 
         # Get the number of elements in the answer list
-        num_answer = len(answer)
     except Exception as e:
         return JSONResponse(content=fallback_res)
-    
+
     split_answer = answer
     items = await get_image_data(many_category_name=split_answer)
 

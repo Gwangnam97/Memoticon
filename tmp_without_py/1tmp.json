@@ -1,36 +1,36 @@
-[
-  {
-    "thumbnail": {
-      "imageUrl": "https://i.pinimg.com/originals/42/e5/33/42e533df85de45bc4f67bfa937cfde81.png",
-      "fixedRatio": true,
-      "link": {
-        "web": "https://i.pinimg.com/originals/42/e5/33/42e533df85de45bc4f67bfa937cfde81.png"
+{
+  "bot": { "id": "643e4a0960d7281960631aaa", "name": "meme_test" },
+  "intent": {
+    "id": "6445fd79d853bb56940a7c49",
+    "name": "talk_to_mememo",
+    "extra": { "reason": { "code": 0, "message": "OK" } }
+  },
+  "action": {
+    "id": "64481201e40e9c7542d767a2",
+    "name": "skill_talk_to_mememo",
+    "params": { "contents": "ㄴㅇ" },
+    "detailParams": {
+      "contents": { "groupName": "", "origin": "ㄴㅇ", "value": "ㄴㅇ" }
+    },
+    "clientExtra": {}
+  },
+  "userRequest": {
+    "block": { "id": "6445fd79d853bb56940a7c49", "name": "talk_to_mememo" },
+    "user": {
+      "id": "f9700a1c5b45ba384ecf32b6dec26b91107390c7a28df4f1c65417c432e5761f4e",
+      "type": "botUserKey",
+      "p  roperties": {
+        "botUserKey": "f9700a1c5b45ba384ecf32b6dec26b91107390c7a28df4f1c65417c432e5761f4e",
+        "isFriend": true,
+        "plusfriendUserKey": "LTlQ2UulD2Co",
+        "bot_user_key": "f9700a1c5b45ba384ecf32b6dec26b  91107390c7a28df4f1c65417c432e5761f4e",
+        "plusfriend_user_key": "LTlQ2UulD2Co"
       }
     },
-    "buttons": [
-      { "action": "share", "label": "공유하기", "messageText": "공유하기" }
-    ]
+    "utterance": "밈모에게 얘기하기",
+    "params": { "surface": "Kakaotalk.plusfriend" },
+    "lang": "ko",
+    "timezone": "Asia/Seoul"
   },
-  {
-    "thumbnail": {
-      "imageUrl": "https://2runzzal.com/thumgif/IiLfEhlWnL.gif",
-      "fixedRatio": true,
-      "link": { "web": "https://2runzzal.com/thumgif/IiLfEhlWnL.gif" }
-    },
-    "buttons": [
-      { "action": "share", "label": "공유하기", "messageText": "공유하기" }
-    ]
-  },
-  {
-    "thumbnail": {
-      "imageUrl": "https://i.pinimg.com/originals/08/e3/e7/08e3e7d564253f1dbd8db53783996687.jpg",
-      "fixedRatio": true,
-      "link": {
-        "web": "https://i.pinimg.com/originals/08/e3/e7/08e3e7d564253f1dbd8db53783996687.jpg"
-      }
-    },
-    "buttons": [
-      { "action": "share", "label": "공유하기", "messageText": "공유하기" }
-    ]
-  }
-]
+  "contexts": []
+}
