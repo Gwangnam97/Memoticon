@@ -1,7 +1,5 @@
 import openai
-
 openai.api_key = "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"
-
 
 input_sentence = "잘생긴 옆집 아저씨"
 # Extract key words from sentences using the GPT-3 model
