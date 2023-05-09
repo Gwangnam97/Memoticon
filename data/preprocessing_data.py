@@ -36,7 +36,6 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     print(f"after drop len : {len(df)}")
 
     # 중복 검출
-    # print(f'df["url"].nunique() : {df["url"].nunique()}')
     tmp_count = df["url"].value_counts()
 
     # url 유니크 데이터
@@ -204,8 +203,8 @@ def preprocessing(df: pd.DataFrame) -> pd.DataFrame:
     print(f"num of filterd index = len(index_cfw) : {len(index_cfw)}", end="\n\n\n")
     # =======================================================================================
 
-    df2 = df.loc[df.index.isin(index_cfw)]
-    df2.to_csv("./filtered.csv", index=False)
+    # df2 = df.loc[df.index.isin(index_cfw)]
+    # df2.to_csv("./inappropriate_words_filtered.csv", index=False)
 
     # =======================================================================================
 
