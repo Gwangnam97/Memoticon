@@ -175,10 +175,14 @@ async def update_cache_every_hour():  # Function: Create a coroutine to update t
 async def get_category_name(req: dict) -> str:
     return req.get("action", {}).get("clientExtra", {}).get("name", "Read_Error!!!")
 
+# Function: Get category name from the request
+async def get_meme_cache_exist(req: dict) -> str:
+    return req.get("action", {}).get("clientExtra", {}).get("meme_cache", None)
+
 
 # Function: Send image response with data
 async def send_img_res(
-    items: list, block_id: str, category_name: str = "무작위"
+    items: list, block_id: str, category_name: str = "무작위", meme_cache : str = "None"
 ) -> JSONResponse:
     res = {
         "version": "2.0",
@@ -193,7 +197,7 @@ async def send_img_res(
                                 "action": "block",
                                 "label": "더보기",
                                 "blockId": block_id,
-                                "extra": {"name": category_name},
+                                "extra": {"name": category_name,"meme_cache": meme_cache},
                             }
                         ],
                     }
@@ -288,7 +292,7 @@ async def recommend(request: Request):
                             {
                                 "description": "어떤 상황에서 사용할건지 선택하기",
                                 "thumbnail": {
-                                    "imageUrl": "https://i.ibb.co/vkVxZGr/img-keyword.png"
+                                    "imageUrl": "https://i.ibb.co/ZgTbB5R/choose-keyword.png"
                                 },
                                 "buttons": [
                                     {
@@ -301,7 +305,7 @@ async def recommend(request: Request):
                             {
                                 "description": "문장을 입력하고 밈을 추천 받아보기",
                                 "thumbnail": {
-                                    "imageUrl": "https://i.ibb.co/L6rmwns/img-sentence.png"
+                                    "imageUrl": "https://i.ibb.co/6gwk09r/input-sentense.png"
                                 },
                                 "buttons": [
                                     {
@@ -336,7 +340,7 @@ async def choose_keyword(request: Request):
                             {
                                 "title": "추천받을 키워드를 선택해주세요.",
                                 "thumbnail": {
-                                    "imageUrl": "https://i.ibb.co/9hPWmDj/img-emotion.png"
+                                    "imageUrl": "https://i.ibb.co/Yjr07h8/keyword.png"
                                 },
                                 "buttons": [
                                     {
@@ -362,7 +366,7 @@ async def choose_keyword(request: Request):
                             {
                                 "title": "추천받을 키워드를 선택해주세요.",
                                 "thumbnail": {
-                                    "imageUrl": "https://i.ibb.co/TRR78L0/img-situation.png"
+                                    "imageUrl": "https://i.ibb.co/Yjr07h8/keyword.png"
                                 },
                                 "buttons": [
                                     {
@@ -388,7 +392,7 @@ async def choose_keyword(request: Request):
                             {
                                 "title": "추천받을 키워드를 선택해주세요.",
                                 "thumbnail": {
-                                    "imageUrl": "https://i.ibb.co/9hPWmDj/img-emotion.png"
+                                    "imageUrl": "https://i.ibb.co/Yjr07h8/keyword.png"
                                 },
                                 "buttons": [
                                     {
@@ -425,6 +429,7 @@ async def choose_keyword(request: Request):
 @app.post("/send_img")
 async def send_img(request: Request):
     req = await request.json()
+    is_exist_meme_cache = await get_meme_cache_exist(req)
     global meme_cache
 
     # Select category
@@ -432,7 +437,7 @@ async def send_img(request: Request):
     print(f'category_name : {category_name}')
     items = []
 
-    if meme_cache == None:
+    if is_exist_meme_cache == None:
         print("meme_cache is not exist")
         items = await get_image_data(await get_category_name(req))
         if len(items) == 0:
@@ -451,7 +456,7 @@ async def send_img(request: Request):
         if len(items) == 0:
             return JSONResponse(content=fallback_res)
         print(f"meme_cache items : {items}")
-        return await send_img_res(items, block_id_send_img, category_name)
+        return await send_img_res(items, block_id_send_img, category_name, "exist")
 
 
 # Route: Send random images
@@ -479,8 +484,6 @@ async def talk_to_mememo(request: Request):
         print(answer)
     except Exception as e:
         return JSONResponse(content=fallback_res)
-
-    # answer = ["잠자는", "귀여운", '강아지']
 
     # Convert cache_data tuple into an asynchronous iterable
     # 가장 높은 count 값 계산

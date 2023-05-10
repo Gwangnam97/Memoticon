@@ -17,4 +17,3 @@ category_lists = category_name.split(", ")
 category_list = [category.rstrip(".") for category in category_lists]
 
 print(category_name)
-#%%
