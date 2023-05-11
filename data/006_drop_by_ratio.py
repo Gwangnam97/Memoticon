@@ -1,3 +1,4 @@
+#%%
 import requests
 import pandas as pd
 from PIL import Image
@@ -30,6 +31,7 @@ def filter_images(row):  # 이미지 필터링 함수
 
 # 이미지 필터링 적용 & fillna 처리
 df_filtered = df.apply(filter_images, axis=1).dropna()
+#%%
 df.loc[df['hashtag'] == "X", 'hashtag'] = ""
 
 # 결과 확인
