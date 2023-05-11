@@ -32,7 +32,7 @@ config = {
 
 
 # Define tables & columns, Delete & save rows to del_history
-main_table = "sys.main"
+main_table = "sys.memo"
 del_table = "sys.del_history"
 count_column = "count_sum"
 target_column = "hashtag"
@@ -69,7 +69,7 @@ async def init_cache():  # Function: Create a coroutine to initialize the cache 
     async with pool.acquire() as conn:
         async with conn.cursor() as cur:
             # Execute a SELECT statement to retrieve all rows from the "main" table
-            await cur.execute("SELECT * FROM main;")
+            await cur.execute(f"SELECT * FROM {main_table};")
             # Store the fetched rows in the cache_data variable
             cache_data = await cur.fetchall()
             range_all_data = range(len(cache_data))
