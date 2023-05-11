@@ -32,13 +32,28 @@ config = {
 
 
 # Define tables & columns, Delete & save rows to del_history
-main_table = "sys.main"
+main_table = "sys.meme"
 del_table = "sys.del_history"
 count_column = "count_sum"
 target_column = "hashtag"
 
 meme_cache = None
 answer = None
+
+gpt_dead_massage = "Mememo dead now...😰🌡"
+default_fallback_massage = "데이터가 없습니다."
+
+
+async def fallback_massage(massage):
+    # Fallback message format
+    fallback_res = {
+        "version": "2.0",
+        "template": {
+            "outputs": [{"simpleText": {"text": massage}}],
+            "quickReplies": quick_replies,
+        },
+    }
+    return fallback_res
 
 
 async def create_pool():  # Function: Create a coroutine to create a database connection pool
@@ -106,8 +121,6 @@ async def url_check(check_data):  # Function: url check
             except aiohttp.ClientError:
                 pass
 
-    # await asyncio.gather(*items)
-
     return items
 
 
@@ -115,7 +128,7 @@ async def get_quick_replies():  # Function: Create a coroutine to initialize the
     print("start get_quick_replies")
     global quick_replies_labels
     global quick_replies
-    global fallback_res
+
     # async with pool.acquire() as conn:
     #     async with conn.cursor() as cur:
     #         # Extract the most popular keywords
@@ -127,8 +140,7 @@ async def get_quick_replies():  # Function: Create a coroutine to initialize the
 
     #         print(f'quick_replies_labels : {quick_replies_labels}')
     #         print(f'type(quick_replies_labels) : {type(quick_replies_labels)}')
-    quick_replies_labels = ['행복', '슬픔', '황당',
-                            '짜증', '분노', '놀림', '축하', '감사', '무한도전']
+    quick_replies_labels = ["행복", "슬픔", "황당", "짜증", "분노", "놀림", "축하", "감사", "무한도전"]
 
     # Quick replies format
     quick_replies = [
@@ -141,23 +153,15 @@ async def get_quick_replies():  # Function: Create a coroutine to initialize the
         for label in quick_replies_labels
     ]
 
-    # Fallback message format
-    fallback_res = {
-        "version": "2.0",
-        "template": {
-            "outputs": [{"simpleText": {"text": "데이터가 없습니다."}}],
-            "quickReplies": quick_replies,
-        },
-    }
     print("done get_quick_replies")
 
 
 # Function: Create a coroutine to perform a keyword search on the cached data
 async def query_keyword(keyword: str):
     # Search the cached data for the keyword
-    result = [
-        [entry[0], entry[1], entry[2]]for entry in cache_data if keyword in entry[2]]
-    return result
+    return [
+        [entry[0], entry[1], entry[2]] for entry in cache_data if keyword in entry[2]
+    ]
 
 
 async def update_cache_every_hour():  # Function: Create a coroutine to update the cache every hour
@@ -175,6 +179,7 @@ async def update_cache_every_hour():  # Function: Create a coroutine to update t
 async def get_category_name(req: dict) -> str:
     return req.get("action", {}).get("clientExtra", {}).get("name", "Read_Error!!!")
 
+
 # Function: Get category name from the request
 async def get_meme_cache_exist(req: dict) -> str:
     return req.get("action", {}).get("clientExtra", {}).get("meme_cache", None)
@@ -182,7 +187,7 @@ async def get_meme_cache_exist(req: dict) -> str:
 
 # Function: Send image response with data
 async def send_img_res(
-    items: list, block_id: str, category_name: str = "무작위", meme_cache : str = "None"
+    items: list, block_id: str, category_name: str = "무작위", meme_cache: str = "None"
 ) -> JSONResponse:
     res = {
         "version": "2.0",
@@ -197,7 +202,10 @@ async def send_img_res(
                                 "action": "block",
                                 "label": "더보기",
                                 "blockId": block_id,
-                                "extra": {"name": category_name,"meme_cache": meme_cache},
+                                "extra": {
+                                    "name": category_name,
+                                    "meme_cache": meme_cache,
+                                },
                             }
                         ],
                     }
@@ -245,11 +253,9 @@ async def get_image_data(category_name: str = "무작위"):
 async def get_keyword_with_gpt(input_sentence: str) -> list:
     # Set up an API key to access the OpenAI API
     openai.api_key = os.getenv("api_key")
-
     # Extract key words from sentences using the GPT-3 model
     messages = [
-        {"role": "user",
-            "content": f"아래 문장에서 핵심단어를 3개만 추출해주세요. \n\n {input_sentence}"}
+        {"role": "user", "content": f"아래 문장에서 핵심단어를 3개만 추출해주세요. \n\n {input_sentence}"}
     ]
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo", messages=messages, temperature=0.2
@@ -428,13 +434,19 @@ async def choose_keyword(request: Request):
 # Route: Send images based on category
 @app.post("/send_img")
 async def send_img(request: Request):
-    req = await request.json()
-    is_exist_meme_cache = await get_meme_cache_exist(req)
     global meme_cache
+
+    req = await request.json()
+    print(req)
+
+    is_exist_meme_cache = await get_meme_cache_exist(req)
+    print(f"is_exist_meme_cache : {is_exist_meme_cache}")
+
+    fallback_res = await fallback_massage(default_fallback_massage)
 
     # Select category
     category_name = await get_category_name(req)
-    print(f'category_name : {category_name}')
+    print(f"category_name : {category_name}")
     items = []
 
     if is_exist_meme_cache == None:
@@ -443,7 +455,7 @@ async def send_img(request: Request):
         if len(items) == 0:
             return JSONResponse(content=fallback_res)
 
-        return await send_img_res(items, block_id_send_img, category_name)
+        return await send_img_res(items, block_id_send_img, category_name, "exist")
 
     else:
         print("meme_cache is exist")
@@ -481,9 +493,10 @@ async def talk_to_mememo(request: Request):
     # Catching GPT-request limit errors
     try:
         answer = await get_keyword_with_gpt(input_sentence)
-        print(answer)
+        print(f"gpt_answer : {answer}")
     except Exception as e:
-        return JSONResponse(content=fallback_res)
+        print(f"Mememo dead now... Exception : {e}")
+        return JSONResponse(content=await fallback_massage(gpt_dead_massage))
 
     # Convert cache_data tuple into an asynchronous iterable
     # 가장 높은 count 값 계산
@@ -497,7 +510,7 @@ async def talk_to_mememo(request: Request):
         elif count == max_count:
             meme_cache.append(data)
     meme_cache = tuple(meme_cache)
-
+    print(f"sample meme_cache : {meme_cache[:5]}")
     items = []
     random_list = random.sample(meme_cache, k=len(meme_cache))
     for i in random_list:
@@ -506,13 +519,15 @@ async def talk_to_mememo(request: Request):
         items.extend(await url_check(i))
 
     if len(items) == 0:
-        return JSONResponse(content=fallback_res)
+        return JSONResponse(content=await fallback_massage(default_fallback_massage))
 
     category_name = ""
     for i in answer:
         category_name += i
 
-    return await send_img_res(items, block_id_send_img, category_name)
+    return await send_img_res(
+        items, block_id_send_img, category_name, meme_cache="exist"
+    )
 
 
 # Run the FastAPI application
