@@ -32,8 +32,8 @@ config = {
 
 
 # Define tables & columns, Delete & save rows to del_history
-main_table = "sys.memo"
-del_table = "sys.del_history"
+main_table = "main.memo"
+del_table = "main.del_history"
 count_column = "count_sum"
 target_column = "hashtag"
 
@@ -239,8 +239,8 @@ async def get_image_data(category_name: str = "무작위"):
     elif category_name != "무작위":
         items = []
         result = await query_keyword(category_name)
-        random_list = random.sample(result, k=len(result))
-        for i in random_list:
+        category_list = random.sample(result, k=len(result))
+        for i in category_list:
             if len(items) == 3:
                 return items
             items.extend(await url_check(i))
@@ -449,15 +449,7 @@ async def send_img(request: Request):
     print(f'category_name : {category_name}')
     items = []
 
-    if is_exist_meme_cache == None:
-        print("meme_cache is not exist")
-        items = await get_image_data(await get_category_name(req))
-        if len(items) == 0:
-            return JSONResponse(content=fallback_res)
-
-        return await send_img_res(items, block_id_send_img, category_name, "exist")
-
-    else:
+    if meme_cache and is_exist_meme_cache:
         print("meme_cache is exist")
         random_list = random.sample(meme_cache, k=len(meme_cache))
         for i in random_list:
@@ -469,6 +461,13 @@ async def send_img(request: Request):
             return JSONResponse(content=fallback_res)
         print(f"meme_cache items : {items}")
         return await send_img_res(items, block_id_send_img, category_name, "exist")
+    else:
+        print("meme_cache is not exist")
+        items = await get_image_data(await get_category_name(req))
+        if len(items) == 0:
+            return JSONResponse(content=fallback_res)
+
+        return await send_img_res(items, block_id_send_img, category_name, None)
 
 
 # Route: Send random images
@@ -479,11 +478,7 @@ async def send_img_random(request: Request):
     return await send_img_res(items, block_id_send_img_random)
 
 
-gpt_dead_massage = "Mememo dead now...😰🌡"
-
 # Route: Extract keyword and send images
-
-
 @app.post("/talk_to_mememo")
 async def talk_to_mememo(request: Request):
     req = await request.json()

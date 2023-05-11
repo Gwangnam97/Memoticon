@@ -10,10 +10,10 @@
 
 -- add "OPT_LOCAL_INFILE=1" Manage Server Connections -> Advancd -> Others
 
-truncate sys.memo;
+truncate main.memo;
 set global local_infile=1;
-LOAD DATA LOCAL INFILE 'data.tsv' 
-INTO TABLE sys.memo
+LOAD DATA LOCAL INFILE 'test.tsv' 
+INTO TABLE main.memo
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY '\t'
 LINES TERMINATED BY '\n'
