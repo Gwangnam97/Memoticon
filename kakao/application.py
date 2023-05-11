@@ -32,7 +32,7 @@ config = {
 
 
 # Define tables & columns, Delete & save rows to del_history
-main_table = "sys.meme"
+main_table = "sys.main"
 del_table = "sys.del_history"
 count_column = "count_sum"
 target_column = "hashtag"
@@ -140,7 +140,8 @@ async def get_quick_replies():  # Function: Create a coroutine to initialize the
 
     #         print(f'quick_replies_labels : {quick_replies_labels}')
     #         print(f'type(quick_replies_labels) : {type(quick_replies_labels)}')
-    quick_replies_labels = ["행복", "슬픔", "황당", "짜증", "분노", "놀림", "축하", "감사", "무한도전"]
+    quick_replies_labels = ['행복', '슬픔', '황당',
+                            '짜증', '분노', '놀림', '축하', '감사', '무한도전']
 
     # Quick replies format
     quick_replies = [
@@ -159,9 +160,9 @@ async def get_quick_replies():  # Function: Create a coroutine to initialize the
 # Function: Create a coroutine to perform a keyword search on the cached data
 async def query_keyword(keyword: str):
     # Search the cached data for the keyword
-    return [
-        [entry[0], entry[1], entry[2]] for entry in cache_data if keyword in entry[2]
-    ]
+    result = [
+        [entry[0], entry[1], entry[2]]for entry in cache_data if keyword in entry[2]]
+    return result
 
 
 async def update_cache_every_hour():  # Function: Create a coroutine to update the cache every hour
@@ -179,8 +180,9 @@ async def update_cache_every_hour():  # Function: Create a coroutine to update t
 async def get_category_name(req: dict) -> str:
     return req.get("action", {}).get("clientExtra", {}).get("name", "Read_Error!!!")
 
-
 # Function: Get category name from the request
+
+
 async def get_meme_cache_exist(req: dict) -> str:
     return req.get("action", {}).get("clientExtra", {}).get("meme_cache", None)
 
@@ -202,10 +204,7 @@ async def send_img_res(
                                 "action": "block",
                                 "label": "더보기",
                                 "blockId": block_id,
-                                "extra": {
-                                    "name": category_name,
-                                    "meme_cache": meme_cache,
-                                },
+                                "extra": {"name": category_name, "meme_cache": meme_cache},
                             }
                         ],
                     }
@@ -255,7 +254,8 @@ async def get_keyword_with_gpt(input_sentence: str) -> list:
     openai.api_key = os.getenv("api_key")
     # Extract key words from sentences using the GPT-3 model
     messages = [
-        {"role": "user", "content": f"아래 문장에서 핵심단어를 3개만 추출해주세요. \n\n {input_sentence}"}
+        {"role": "user",
+            "content": f"아래 문장에서 핵심단어를 3개만 추출해주세요. \n\n {input_sentence}"}
     ]
     completion = openai.ChatCompletion.create(
         model="gpt-3.5-turbo", messages=messages, temperature=0.2
@@ -440,13 +440,13 @@ async def send_img(request: Request):
     print(req)
 
     is_exist_meme_cache = await get_meme_cache_exist(req)
-    print(f"is_exist_meme_cache : {is_exist_meme_cache}")
+    print(f'is_exist_meme_cache : {is_exist_meme_cache}')
 
     fallback_res = await fallback_massage(default_fallback_massage)
 
     # Select category
     category_name = await get_category_name(req)
-    print(f"category_name : {category_name}")
+    print(f'category_name : {category_name}')
     items = []
 
     if is_exist_meme_cache == None:
@@ -479,7 +479,11 @@ async def send_img_random(request: Request):
     return await send_img_res(items, block_id_send_img_random)
 
 
+gpt_dead_massage = "Mememo dead now...😰🌡"
+
 # Route: Extract keyword and send images
+
+
 @app.post("/talk_to_mememo")
 async def talk_to_mememo(request: Request):
     req = await request.json()
@@ -493,9 +497,9 @@ async def talk_to_mememo(request: Request):
     # Catching GPT-request limit errors
     try:
         answer = await get_keyword_with_gpt(input_sentence)
-        print(f"gpt_answer : {answer}")
+        print(f'gpt_answer : {answer}')
     except Exception as e:
-        print(f"Mememo dead now... Exception : {e}")
+        print(f'Mememo dead now... Exception : {e}')
         return JSONResponse(content=await fallback_massage(gpt_dead_massage))
 
     # Convert cache_data tuple into an asynchronous iterable
@@ -510,7 +514,7 @@ async def talk_to_mememo(request: Request):
         elif count == max_count:
             meme_cache.append(data)
     meme_cache = tuple(meme_cache)
-    print(f"sample meme_cache : {meme_cache[:5]}")
+    print(f'sample meme_cache : {meme_cache[:5]}')
     items = []
     random_list = random.sample(meme_cache, k=len(meme_cache))
     for i in random_list:
@@ -525,9 +529,7 @@ async def talk_to_mememo(request: Request):
     for i in answer:
         category_name += i
 
-    return await send_img_res(
-        items, block_id_send_img, category_name, meme_cache="exist"
-    )
+    return await send_img_res(items, block_id_send_img, category_name, meme_cache="exist")
 
 
 # Run the FastAPI application

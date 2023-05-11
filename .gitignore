@@ -6,7 +6,7 @@ __pycache__
 *.jpg
 *.png
 .env
-
+*.json
 
 # folder
 .vscode
