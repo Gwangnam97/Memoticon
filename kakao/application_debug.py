@@ -5,13 +5,15 @@ import aiomysql
 import asyncio
 import aiohttp
 import uvicorn
+
 from fastapi.responses import JSONResponse
 from fastapi import FastAPI, Request
+import tracemalloc
 
+tracemalloc.start()
 
 # Initialize the FastAPI app
 app = FastAPI()
-
 
 # Define blocks ID
 block_id_send_img_random = "644a0944b5e5636c2125a14c"
@@ -21,11 +23,11 @@ block_id_meme = "6445fd79d853bb56940a7c49"
 
 # Define the database connection configuration
 config = {
-    "host": os.getenv("host"),
-    "port": int(os.getenv("port")),
-    "user": os.getenv("user"),
-    "password": os.getenv("password"),
-    "db": os.getenv("db"),
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "1234",
+    "db": "sys",
 }
 
 
@@ -39,10 +41,10 @@ meme_cache = None
 answer = None
 
 gpt_dead_massage = "Mememo dead now...😰🌡"
-default_fallback_message = "데이터가 없습니다."
+default_fallback_massage = "데이터가 없습니다."
 
 
-async def fallback_message(massage):
+async def fallback_massage(massage):
     # Fallback message format
     fallback_res = {
         "version": "2.0",
@@ -55,11 +57,13 @@ async def fallback_message(massage):
 
 
 async def create_pool():  # Function: Create a coroutine to create a database connection pool
+    print("creating pool")
     global pool
     pool = await aiomysql.create_pool(**config)
 
 
 async def init_cache():  # Function: Create a coroutine to initialize the cache with *data from the database
+    print("start init_cache")
     global cache_data
     global range_all_data
     async with pool.acquire() as conn:
@@ -69,6 +73,10 @@ async def init_cache():  # Function: Create a coroutine to initialize the cache 
             # Store the fetched rows in the cache_data variable
             cache_data = await cur.fetchall()
             range_all_data = range(len(cache_data))
+            # id = cache_data[i][0]
+            # url = cache_data[i][1]
+            # hashtag = cache_data[i][2]
+            print(f"done init_cache")
 
 
 async def url_check(check_data):  # Function: url check
@@ -117,11 +125,24 @@ async def url_check(check_data):  # Function: url check
 
 
 async def get_quick_replies():  # Function: Create a coroutine to initialize the cache with quick_replies_data from the database
+    print("start get_quick_replies")
     global quick_replies_labels
     global quick_replies
 
+    # async with pool.acquire() as conn:
+    #     async with conn.cursor() as cur:
+    #         # Extract the most popular keywords
+    #         query = f"SELECT SUBSTRING_INDEX(SUBSTRING_INDEX({target_column}, ',', n), ',', -1) AS tag_word, COUNT(*) AS cnt FROM {main_table} CROSS JOIN (SELECT 1 AS n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) AS nums WHERE n <= 1 + LENGTH({target_column}) - LENGTH(REPLACE({target_column}, ',', '')) GROUP BY tag_word ORDER BY cnt DESC LIMIT 6;"
+    #         await cur.execute(query)
+    #         popular_keywords = await cur.fetchall()
+    #         # Store the fetched rows in the range_all_data variable
+    #         quick_replies_labels = [result[0] for result in popular_keywords]
+
+    #         print(f'quick_replies_labels : {quick_replies_labels}')
+    #         print(f'type(quick_replies_labels) : {type(quick_replies_labels)}')
     quick_replies_labels = ['행복', '슬픔', '황당',
                             '짜증', '분노', '놀림', '축하', '감사', '무한도전']
+
     # Quick replies format
     quick_replies = [
         {
@@ -133,6 +154,8 @@ async def get_quick_replies():  # Function: Create a coroutine to initialize the
         for label in quick_replies_labels
     ]
 
+    print("done get_quick_replies")
+
 
 # Function: Create a coroutine to perform a keyword search on the cached data
 async def query_keyword(keyword: str):
@@ -143,10 +166,12 @@ async def query_keyword(keyword: str):
 
 
 async def update_cache_every_hour():  # Function: Create a coroutine to update the cache every hour
+    print("start update_cache_every_hour")
     while True:
         # Reinitialize the cache with quick replies data from the database
         await init_cache()
         await get_quick_replies()
+        print("SERVER IS READY")
         # Wait for 3600 seconds before updating the cache again
         await asyncio.sleep(3600)
 
@@ -155,8 +180,9 @@ async def update_cache_every_hour():  # Function: Create a coroutine to update t
 async def get_category_name(req: dict) -> str:
     return req.get("action", {}).get("clientExtra", {}).get("name", "Read_Error!!!")
 
-
 # Function: Get category name from the request
+
+
 async def get_meme_cache_exist(req: dict) -> str:
     return req.get("action", {}).get("clientExtra", {}).get("meme_cache", None)
 
@@ -251,6 +277,7 @@ async def count_category(data, category_names):
 
 @app.on_event("startup")
 async def on_startup():  # Register an event handler to create a database connection pool when the app starts up
+    print("SEVER STARTUP")
     await create_pool()
     # Register the update_cache_every_hour coroutine with the asyncio event loop
     asyncio.ensure_future(update_cache_every_hour())
@@ -410,16 +437,20 @@ async def send_img(request: Request):
     global meme_cache
 
     req = await request.json()
+    print(req)
 
     is_exist_meme_cache = await get_meme_cache_exist(req)
+    print(f'is_exist_meme_cache : {is_exist_meme_cache}')
 
-    fallback_res = await fallback_message(default_fallback_message)
+    fallback_res = await fallback_massage(default_fallback_massage)
 
     # Select category
     category_name = await get_category_name(req)
+    print(f'category_name : {category_name}')
     items = []
 
     if meme_cache and is_exist_meme_cache:
+        print("meme_cache is exist")
         random_list = random.sample(meme_cache, k=len(meme_cache))
         for i in random_list:
             if len(items) == 3:
@@ -428,8 +459,10 @@ async def send_img(request: Request):
 
         if len(items) == 0:
             return JSONResponse(content=fallback_res)
+        print(f"meme_cache items : {items}")
         return await send_img_res(items, block_id_send_img, category_name, "exist")
     else:
+        print("meme_cache is not exist")
         items = await get_image_data(await get_category_name(req))
         if len(items) == 0:
             return JSONResponse(content=fallback_res)
@@ -449,6 +482,7 @@ async def send_img_random(request: Request):
 @app.post("/talk_to_mememo")
 async def talk_to_mememo(request: Request):
     req = await request.json()
+    print(req)
     global meme_cache
     global answer
 
@@ -458,8 +492,10 @@ async def talk_to_mememo(request: Request):
     # Catching GPT-request limit errors
     try:
         answer = await get_keyword_with_gpt(input_sentence)
+        print(f'gpt_answer : {answer}')
     except Exception as e:
-        return JSONResponse(content=await fallback_message(gpt_dead_massage))
+        print(f'Mememo dead now... Exception : {e}')
+        return JSONResponse(content=await fallback_massage(gpt_dead_massage))
 
     # Convert cache_data tuple into an asynchronous iterable
     # 가장 높은 count 값 계산
@@ -473,6 +509,7 @@ async def talk_to_mememo(request: Request):
         elif count == max_count:
             meme_cache.append(data)
     meme_cache = tuple(meme_cache)
+    print(f'sample meme_cache : {meme_cache[:5]}')
     items = []
     random_list = random.sample(meme_cache, k=len(meme_cache))
     for i in random_list:
@@ -481,11 +518,12 @@ async def talk_to_mememo(request: Request):
         items.extend(await url_check(i))
 
     if len(items) == 0:
-        return JSONResponse(content=await fallback_message(default_fallback_message))
+        return JSONResponse(content=await fallback_massage(default_fallback_massage))
 
     category_name = ""
     for i in answer:
         category_name += i
+
     return await send_img_res(items, block_id_send_img, category_name, meme_cache="exist")
 
 

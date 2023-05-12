@@ -12,7 +12,7 @@
 
 truncate main.memo;
 set global local_infile=1;
-LOAD DATA LOCAL INFILE 'test.tsv' 
+LOAD DATA LOCAL INFILE 'data.tsv' 
 INTO TABLE main.memo
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY '\t'

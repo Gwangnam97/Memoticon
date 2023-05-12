@@ -1,0 +1,83 @@
+1.4 기술 스택 (page.8)
+- language
+Python
+
+
+- server
+Linux
+Docker
+Uvicorn
+Fastapi
+Asyncio
+Aiohttp
+
+
+- data engineering
+Pandas
+PIL
+Jupyter
+Colab
+
+
+- data scraping
+Requests
+Beautifulsoup
+Selenium
+
+
+-database
+MySQL
+
+
+- model
+Openai
++@
+
+
+- IDE
+Visual Studio Code
+GoormIDE
+
+- Other
+Github
+Slack
+Notion
+Figma
+
+
+
+4.2 구현 (page.41)
+
+FastAPI를 사용하여 구현된 서버이고, 주요 기능과 동작은 다음과 같습니다:
+
+1. 서버 초기화 및 설정:
+- FastAPI 앱을 초기화하고 필요한 패키지 및 모듈을 임포트합니다.
+- 서버에서 사용할 데이터베이스 연결 설정(config)을 정의합니다.
+- 밈 이미지와 관련된 DB테이블 및 열(column) 정보를 정의합니다.
+
+
+2. 데이터베이스 연결 및 캐시 초기화:
+- create_pool() 함수를 사용하여 데이터베이스 연결 풀(pool)을 생성합니다.
+- init_cache() 함수를 사용하여 데이터베이스에서 데이터를 가져와 캐시(cache_data)에 저장합니다.
+- get_quick_replies() 함수를 사용하여 퀵 리플라이(빠른 답장) 데이터를 가져와 설정합니다.
+
+
+3. URL 체크 및 이미지 데이터 처리:
+- url_check() 함수는 주어진 이미지 데이터의 URL을 체크하여 유효한 URL인지 확인합니다.
+- get_response_from_url() 함수는 주어진 데이터의 URL로부터 HTTP 응답을 가져옵니다.
+- get_image_data() 함수는 특정 카테고리에 대한 이미지 데이터를 가져옵니다.
+- query_keyword() 함수는 캐시된 데이터에서 특정 키워드로 검색한 결과를 가져옵니다.
+
+
+4. 서버 라우트(Route) 및 핸들러:
+- /recommend, /choose_keyword, /send_img, /send_img_random 등의 서버의 라우트에 대한 핸들러를 정의합니다.
+- 각 핸들러는 클라이언트 요청을 처리하고 적절한 응답을 반환합니다.
+- send_img_res() 함수는 이미지 응답을 생성하고 반환합니다.
+- 기타 유틸리티 함수와 이벤트 핸들러도 정의되어 있습니다.
+
+
+5. 서버 실행:
+- uvicorn을 사용하여 FastAPI 앱을 실행합니다.
+- 이 서버는 클라이언트 요청에 따라 밈 이미지를 추천해주는 기능을 제공하는 서버를 구현한 것입니다. 
+    클라이언트가 요청하는 카테고리에 따라 무작위 이미지를 추천하거나, 키워드를 기반으로 이미지를 추천할 수 있습니다. 
+    서버는 데이터베이스에서 이미지 데이터를 가져와 유효한 URL인지 확인한 후, 응답으로 이미지를 반환합니다.

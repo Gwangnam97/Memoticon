@@ -35,12 +35,14 @@ def process_urls(df):
 
 
 def main():
-    df = pd.read_csv(r"C:\Memoticon\data\006_drop_by_ratio.csv", encoding="utf-8-sig")
-    # df = df.head(300)
-    # # 비동기 작업 수행
+    df = pd.read_csv(r"C:\Memoticon\data\008_hand_cleaning.csv", encoding="utf-8-sig")
+    # 비동기 작업 수행
     filtered_df = process_urls(df)
-    print(filtered_df)
-    filtered_df.to_csv("./test.csv", index=False)
+    # print(filtered_df)
+    # filtered_df.to_csv("./test.csv", index=False)
+    filtered_df.to_csv(r"C:\Memoticon\data\009_drop_by_ratio.csv", encoding="utf-8-sig",index=False)
+    print("Done")
+
 
 
 if __name__ == "__main__":
