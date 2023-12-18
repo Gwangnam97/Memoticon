@@ -10,3 +10,9 @@ __pycache__
 .vscode
 fairseq
 
+*.xlsx
+tmp*.py
+*.txt
+__pycache__
+*.jpg
+.env
