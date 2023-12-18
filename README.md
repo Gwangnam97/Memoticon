@@ -2,6 +2,14 @@
 
 
 
+## 🔧 MemeMoticon Guide
+
+#To watch the code we wrote, visit
+<img src="https://goor.me/5UmwQNiEXRPhvofXA" alt="Static Badge" data-canonical-src="https://img.shields.io/badge/GoormIDE-brightgreen?style=plastic&label=%20&link=https%3A%2F%2Fgoor.me%2F5UmwQNiEXRPhvofXA">
+
+To check the results with kakao-chatbot, visit[https://pf.kakao.com/_UKjcxj](https://pf.kakao.com/_UKjcxj)
+
+
 ## 🚀 Project Overview
 
 * `Background and Objectives of the Project`
@@ -25,14 +33,6 @@
 
 * `Project Schedule`
     * WBS [https://i.postimg.cc/MZPpH91Q/WBS.png](https://i.postimg.cc/MZPpH91Q/WBS.png)
-
-
-## 🔧 MemeMoticon Guide
-
-#To watch the code we wrote, visit
-<img src="https://goor.me/5UmwQNiEXRPhvofXA" alt="Static Badge" data-canonical-src="https://img.shields.io/badge/GoormIDE-brightgreen?style=plastic&label=%20&link=https%3A%2F%2Fgoor.me%2F5UmwQNiEXRPhvofXA">
-
-To check the results with kakao-chatbot, visit[https://pf.kakao.com/_UKjcxj](https://pf.kakao.com/_UKjcxj)
 
 
 ## ☁️ goormIDE
