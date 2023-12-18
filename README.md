@@ -5,9 +5,9 @@
 ## 🔧 MemeMoticon Guide
 
 #To watch the code we wrote, visit
-<img src="https://goor.me/5UmwQNiEXRPhvofXA" alt="Static Badge" data-canonical-src="https://img.shields.io/badge/GoormIDE-brightgreen?style=plastic&label=%20&link=https%3A%2F%2Fgoor.me%2F5UmwQNiEXRPhvofXA">
+<img alt="Static Badge" src="https://img.shields.io/badge/GoormIDE-brightgreen?style=plastic&label=%20&link=https%3A%2F%2Fgoor.me%2F5UmwQNiEXRPhvofXA">
 
-To check the results with kakao-chatbot, visit[https://pf.kakao.com/_UKjcxj](https://pf.kakao.com/_UKjcxj)
+To check the results with kakao-chatbot, visit [https://pf.kakao.com/_UKjcxj](https://pf.kakao.com/_UKjcxj)
 
 
 ## 🚀 Project Overview
