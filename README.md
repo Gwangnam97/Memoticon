@@ -1,6 +1,49 @@
 "# Playdata_finalProject_meme" 
-기술 상세 작성 or 스크립트 설명
 
+
+
+## 🚀 Project Overview
+
+* `Background and Objectives of the Project`
+	* First, minimizing the information gap across generations and creating an environment for smooth conversations.
+        * Problem: Not familiar and difficult to understand for a specific demographic (older age group).
+        * Solution: Utilizing the chatbot feature of KakaoTalk, the top messenger in South Korea, accessible to people of all ages.
+
+	* Second, providing convenience for easily finding desired memes.
+        * Problem: Inconvenience for users to manually search for the memes they want.
+        * Solution: A method for easy and convenient use of memes is needed.
+
+* `Expected Benefits`
+    * First, minimizing the information gap about internet terms and memes across generations.
+        * Easy access for all age groups through KakaoTalk, the top messenger in the country.
+
+	* Second, time and effort savings.
+        * Easy meme exploration through the service, allowing seamless sharing without the need to store them on the phone.
+
+	* Third, continuous update of new content.
+        * Continuous collection and provision of new memes, allowing users to easily encounter fresh content.
+
+* `Project Schedule`
+    * WBS [https://i.postimg.cc/MZPpH91Q/WBS.png](https://i.postimg.cc/MZPpH91Q/WBS.png)
+
+
+## 🔧 MemeMoticon Guide
+
+#To watch the code we wrote, visit
+<img src="https://goor.me/5UmwQNiEXRPhvofXA" alt="Static Badge" data-canonical-src="https://img.shields.io/badge/GoormIDE-brightgreen?style=plastic&label=%20&link=https%3A%2F%2Fgoor.me%2F5UmwQNiEXRPhvofXA">
+
+To check the results with kakao-chatbot, visit[https://pf.kakao.com/_UKjcxj](https://pf.kakao.com/_UKjcxj)
+
+
+## ☁️ goormIDE
+Thanks for goormIDE!
+
+goormIDE is a powerful cloud IDE service to maximize productivity for developers and teams.  
+**DEVELOP WITH EXCELLENCE**  
+
+`Happy coding! The goormIDE team`
+
+Visit [https://ide.goorm.io](https://ide.goorm.io) to support and learn more about using goormIDE.  
 
 ```
 ┌───────────────────────────────────────────────┐
@@ -13,39 +56,3 @@
 			     🌩 𝘼𝙣𝙮𝙤𝙣𝙚 𝙘𝙖𝙣 𝙙𝙚𝙫𝙚𝙡𝙤𝙥!
 └───────────────────────────────────────────────┘
 ```
-
-# goormIDE
-Welcome to goormIDE!
-
-goormIDE is a powerful cloud IDE service to maximize productivity for developers and teams.  
-**DEVELOP WITH EXCELLENCE**  
-
-`Happy coding! The goormIDE team`
-
-
-## 🔧 Tip & Guide
-
-* Command feature
-	* You can simply run your script using the shortcut icons on the top right.
-	* Check out `PROJECT > Common/Build/Run/Test/Find Command` in the top menu.
-	
-* Get URL and Port
-	* Click `PROJECT > URL/PORT` in top menu bar.
-	* You can get default URL/Port and add URL/Port in the top menu.
-
-* Useful shortcut
-	
-| Shortcuts name     | Command (Mac) | Command (Window) |
-| ------------------ | :-----------: | :--------------: |
-| Copy in Terminal   | ⌘ + C         | Ctrl + Shift + C |
-| Paste in Terminal  | ⌘ + V         | Ctrl + Shift + V |
-| Search File        | ⌥ + ⇧ + F     | Alt + Shift + F  |
-| Terminal Toggle    | ⌥ + ⇧ + B     | Alt + Shift + B  |
-| New Terminal       | ⌥ + ⇧ + T     | Alt + Shift + T  |
-| Code Formatting    | ⌥ + ⇧ + P     | Alt + Shift + P  |
-| Show All Shortcuts | ⌘ + H         | Ctrl + H         |
-
-## 💬 Support & Documentation
-
-Visit [https://ide.goorm.io](https://ide.goorm.io) to support and learn more about using goormIDE.  
-To watch some usage guides, visit [https://help.goorm.io/en/goormide](https://help.goorm.io/en/goormide)
