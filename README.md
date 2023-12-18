@@ -5,7 +5,9 @@
 ## 🔧 MemeMoticon Guide
 
 #To watch the code we wrote, visit
-<img alt="Static Badge" src="https://img.shields.io/badge/GoormIDE-brightgreen?style=plastic&label=%20&link=https%3A%2F%2Fgoor.me%2F5UmwQNiEXRPhvofXA">
+<a href="https://goor.me/5UmwQNiEXRPhvofXA" rel="nofollow">
+<img alt="Static Badge" src="https://img.shields.io/badge/GoormIDE-brightgreen?style=plastic">
+</a>
 
 To check the results with kakao-chatbot, visit [https://pf.kakao.com/_UKjcxj](https://pf.kakao.com/_UKjcxj)
 
