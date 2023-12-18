@@ -1,15 +1,17 @@
 "# Playdata_finalProject_meme" 
 
 
-
 ## 🔧 MemeMoticon Guide
 
 #To watch the code we wrote, visit
-<a href="https://goor.me/5UmwQNiEXRPhvofXA" rel="nofollow">
+<a href="https://goor.me/5UmwQNiEXRPhvofXA">
 <img alt="Static Badge" src="https://img.shields.io/badge/GoormIDE-brightgreen?style=plastic">
 </a>
 
-To check the results with kakao-chatbot, visit [https://pf.kakao.com/_UKjcxj](https://pf.kakao.com/_UKjcxj)
+To check the results with kakao-chatbot, visit 
+<a href="https://pf.kakao.com/_UKjcxj">
+<img alt="Static Badge" src="https://img.shields.io/badge/KakaoChatbot-yellow?style=plastic">
+</a>
 
 
 ## 🚀 Project Overview
